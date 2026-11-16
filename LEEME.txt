@@ -1,0 +1,18 @@
+CONTROL DE OBRAS - versión instalable (PWA)
+
+QUÉ ES
+Es la misma app, empaquetada para publicarla en tu propio sitio y que se instale en el celular como una app (icono propio, pantalla completa, funciona sin conexión después de la primera carga).
+
+CÓMO PUBLICARLA (elige una opción, todas gratuitas)
+1) Netlify: entra a https://app.netlify.com/drop y arrastra la carpeta con estos archivos. Te da una dirección https://...
+2) GitHub Pages: sube los archivos a un repositorio y activa Pages.
+3) Firebase Hosting o cualquier hosting con https.
+
+CÓMO INSTALARLA EN EL CELULAR (Android)
+Abre la dirección en Chrome -> menú ⋮ -> «Instalar aplicación» (o «Agregar a la pantalla principal»).
+
+IMPORTANTE
+- En esta versión los datos se guardan en el propio dispositivo (modo local). Usa Más -> Datos y copias para exportar a Excel y hacer copias de seguridad.
+- El modo compartido (varios usuarios, roles, fotos en la nube) funciona en la versión publicada como artefacto de Claude, que ofrece esas capacidades. Aquí no está disponible.
+- Para un APK de Play Store: usa https://www.pwabuilder.com con la dirección donde la publiques (genera un paquete Android).
+- Necesita internet la primera vez (descarga las librerías de Excel, PDF y gráficos); después queda en caché.

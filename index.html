@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="color-scheme" content="light dark"><meta name="theme-color" content="#122A50">
+<title>Control de Obras</title>
+<link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg"><link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{--bg:#f4f6fb;--card:#fff;--ink:#16223b;--muted:#6b7385;--line:#dfe4ee;--navy:#122a50;--orange:#ee6225;--teal:#1f8f82;--red:#c00000;--amber:#ffc000;--green:#2e9e5b;--soft:#eef2f8;--inp:#fffdf4;--shadow:0 1px 3px rgba(18,42,80,.12)}
+@media (prefers-color-scheme:dark){:root{--bg:#0e1424;--card:#171f35;--ink:#e8ecf6;--muted:#9aa4bd;--line:#2a3452;--soft:#1e2842;--inp:#1c2540;--shadow:0 1px 3px rgba(0,0,0,.5)}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+body{padding-top:env(safe-area-inset-top,0px);padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+#app{max-width:1100px;margin:0 auto;padding:0 12px}
+.top{display:flex;align-items:center;gap:10px;padding:14px 4px 8px}
+.top h1{font-size:19px;margin:0;flex:1;line-height:1.15}.top small{display:block;color:var(--muted);font-weight:400;font-size:12px}
+.btn{border:0;border-radius:10px;padding:10px 14px;font:600 14px system-ui,sans-serif;background:var(--navy);color:#fff;cursor:pointer;min-height:42px}
+.btn.o{background:var(--orange)}.btn.g{background:var(--soft);color:var(--ink)}.btn.r{background:var(--red)}.btn.s{padding:6px 10px;min-height:32px;font-size:13px}.btn:disabled{opacity:.5}
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:14px;margin:10px 0}
+.card h2{margin:0 0 8px;font-size:15px;color:var(--navy)}@media (prefers-color-scheme:dark){.card h2{color:#9db8f0}}
+.grid{display:grid;gap:10px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+@media (max-width:640px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border-radius:12px;box-shadow:var(--shadow);padding:10px 12px;border-top:3px solid var(--navy);min-width:0}
+.kpi .l{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.2px;text-transform:uppercase}.kpi .v{font-size:19px;font-weight:800;margin:2px 0;word-break:break-word}.kpi .s{font-size:11px;color:var(--muted)}
+.kpi.o{border-color:var(--orange)}.kpi.t{border-color:var(--teal)}.kpi.r{border-color:var(--red)}.kpi.a{border-color:var(--amber)}
+.neg{color:var(--red)}.pos{color:var(--green)}.mut{color:var(--muted)}
+.chip{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;background:var(--soft);color:var(--ink)}
+.s-CRÍTICO{background:var(--red);color:#fff}.s-ALERTA{background:var(--amber);color:#000}.s-NORMAL{background:var(--green);color:#fff}.s-FINALIZADO{background:#5b6b8c;color:#fff}.s-POR{background:#d9d9d9;color:#000}.s-EN{background:#f4b183;color:#000}
+.bar{height:8px;border-radius:6px;background:var(--soft);overflow:hidden;margin:3px 0 6px}.bar i{display:block;height:100%;border-radius:6px;background:var(--teal)}.bar.c i{background:var(--orange)}
+.pc{cursor:pointer}.pc .row{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.pc h3{margin:0;font-size:16px}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px;font-size:12px}.mini b{display:block;font-size:13px}
+.al{padding:8px 10px;border-radius:10px;margin:6px 0;font-size:13px;background:var(--soft)}.al.r{background:#ffe3e3;color:#8f0000}.al.a{background:#fff4cc;color:#6b4e00}.al.i{background:var(--soft)}
+@media (prefers-color-scheme:dark){.al.r{background:#4a1b1b;color:#ffb3b3}.al.a{background:#4a3c10;color:#ffe08a}}
+.tw{overflow-x:auto;margin:0 -4px}table{border-collapse:collapse;width:100%;font-size:13px}th{background:var(--navy);color:#fff;padding:7px 8px;text-align:left;font-size:12px;white-space:nowrap;position:sticky;top:0}td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+td.n,th.n{text-align:right;white-space:nowrap}tr.tot td{font-weight:800;background:var(--soft)}tr.cap td{background:var(--soft);font-weight:700;color:var(--navy)}
+.seg{display:flex;gap:6px;overflow-x:auto;padding:4px 0 8px}.seg button{border:0;border-radius:999px;padding:8px 14px;background:var(--soft);color:var(--ink);font-weight:600;white-space:nowrap;cursor:pointer}.seg button.on{background:var(--navy);color:#fff}
+.nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:20}
+.nav button{border:0;background:none;color:var(--muted);font:600 11px system-ui;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 10px;min-width:60px;cursor:pointer;position:relative}.nav button span{font-size:20px;line-height:1}.nav button.on{color:var(--orange)}
+.nav .plus{background:var(--orange);color:#fff;border-radius:50%;width:52px;height:52px;margin-top:-18px;font-size:28px;display:flex;align-items:center;justify-content:center;min-width:52px;box-shadow:0 3px 8px rgba(0,0,0,.3)}.nav .plus span{font-size:28px}
+.badge{position:absolute;top:0;right:8px;background:var(--red);color:#fff;border-radius:999px;font-size:10px;padding:1px 5px}
+.ov{position:fixed;inset:0;background:rgba(10,16,30,.55);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--card);width:100%;max-width:720px;max-height:94vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.sheet.wide{max-width:1000px}@media (min-width:760px){.ov{align-items:center}.sheet{border-radius:18px}}
+.sheet h2{margin:0 0 10px;font-size:18px;color:var(--navy)}@media (prefers-color-scheme:dark){.sheet h2{color:#9db8f0}}
+.f{display:flex;flex-direction:column;gap:3px;margin:8px 0}.f label{font-size:12px;font-weight:700;color:var(--muted)}.f small{font-size:11px;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--inp);border:1px solid var(--line);border-radius:9px;padding:9px 10px;width:100%;min-height:40px}textarea{min-height:70px}
+input[type=checkbox]{width:22px;height:22px;min-height:0}.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}@media (max-width:520px){.frow{grid-template-columns:1fr}}
+.acts{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap}.acts .sp{flex:1}
+.menu{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.menu button{background:var(--card);border:0;border-radius:14px;box-shadow:var(--shadow);padding:16px 10px;font:700 14px system-ui;color:var(--ink);cursor:pointer;text-align:center}.menu button span{display:block;font-size:26px;margin-bottom:4px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:#222;color:#fff;padding:10px 16px;border-radius:10px;z-index:99;font-size:14px;max-width:90%}
+.gantt{display:grid;gap:2px;font-size:10px}.gantt .c{height:16px;border-radius:2px;background:var(--soft)}.gantt .p{background:#bfd7f2}.gantt .r{background:var(--navy)}.gantt .x{background:var(--orange)}.gantt .h{text-align:center;color:var(--muted)}.gantt .nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;align-self:center}
+canvas{max-width:100%}.ch{position:relative;height:230px}
+.ok{background:#d8f0e3;color:#1e7b46}.bad{background:#ffe3e3;color:#8f0000}.warn{background:#fff4cc;color:#6b4e00}
+.rv input{padding:5px 6px;min-height:32px;font-size:13px}.rv td{padding:4px}.rv .d{min-width:220px}.rv .u{width:64px}.rv .q{width:84px}
+.ph{display:flex;gap:6px;flex-wrap:wrap}.ph img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
+.hint{font-size:12px;color:var(--muted)}
+@media print{body{background:#fff;padding:0}.nav,.top .btn,.no-print,.toast,.ov{display:none!important}.card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}#app{max-width:none}}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head><body><div id="app"></div>
+<script>
+/* ===== ENGINE_START ===== */
+const CATS = ["Materiales", "Mano de obra", "Transporte y combustible", "Herramientas y equipos", "Subcontratos", "Otros gastos"];
+const CATS_GG = ["Alquiler de oficina", "Servicios básicos", "Internet y telefonía", "Contabilidad y legal", "Papelería y oficina", "Movilidad", "Marketing", "Impuestos y tasas", "Otros generales"];
+const ESTADOS = ["Por iniciar", "Iniciado", "En proceso", "En pausa", "Finalizado", "Entregado"];
+const FORMAS = ["Efectivo", "Transferencia", "Cheque", "QR / Tarjeta"];
+const TIPOS_PLANILLA = ["Anticipo", "Planilla de avance", "Pago final", "Otro cobro"];
+const CONC_UTIL = ["Anticipo de utilidad", "Pago por avance", "Pago final de utilidad"];
+const OFICIOS = ["Maestro albañil", "Albañil", "Ayudante", "Armador", "Carpintero", "Electricista", "Plomero", "Pintor", "Soldador", "Peón"];
+
+const uid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
+const num = v => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
+const D = s => { if (!s) return null; const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) / 86400000 : null; };
+const iso = dn => new Date(dn * 86400000).toISOString().slice(0, 10);
+const mondayOf = dn => dn - ((dn + 3) % 7 + 7) % 7;
+const todayDn = () => { const d = new Date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000; };
+const fmt = (n, d = 2) => (isFinite(n) ? Number(n) : 0).toLocaleString("es-BO", { minimumFractionDigits: d, maximumFractionDigits: d });
+const fmtBs = n => "Bs " + fmt(n, 2);
+const fmtDate = s => { if (!s) return "—"; const [y, m, d] = s.split("-"); return d + "/" + m + "/" + y; };
+const pct = (n, d = 1) => fmt((n || 0) * 100, d) + "%";
+
+function emptyState() {
+  return {
+    v: 1,
+    config: { empresa: "Mi empresa constructora", inicio: iso(mondayOf(todayDn())), diasAlerta: 15, tol: 0.10, umbral: 0.90, avMin: 0.10, prorratearGG: true, iva: 0.13, it: 0.03,
+              sueldos: { gerente: 1000, contadora: 1000, ingeniero: 1000 } },
+    projects: [], items: [], cambios: [], movs: [], obreros: [], gg: [], planillas: [], cobros: [], nomina: [], pagosUtil: [], avance: [], roles: {}
+  };
+}
+
+/* ---- motor: calcula todo a partir del estado ---- */
+function compute(S, today) {
+  const C = S.config, start = D(C.inicio) != null ? mondayOf(D(C.inicio)) : mondayOf(today);
+  const weekIdx = dn => Math.floor((dn - start) / 7) + 1;
+  const out = { today, start, curWeek: Math.max(1, weekIdx(today)), proj: [], byId: {}, warnings: [] };
+  const pById = {}; S.projects.forEach(p => pById[p.id] = p);
+  const P = S.projects.map(p => {
+    const monto = num(p.monto);
+    const camb = S.cambios.filter(c => c.pid === p.id && D(c.fecha) != null && D(c.fecha) <= today).reduce((a, c) => a + (c.tipo === "Deductivo" ? -Math.abs(num(c.monto)) : Math.abs(num(c.monto))), 0);
+    const ief = D(p.ini_r) != null ? D(p.ini_r) : (D(p.ini_p) != null ? D(p.ini_p) : null);
+    const fef = D(p.fin_r);
+    return { p, monto, camb, vig: monto + camb, ief, fef, mat: 0, mo: 0, otr: 0, sue: 0, ggs: 0, wcost: {} };
+  });
+  const byId = {}; P.forEach(x => byId[x.p.id] = x); out.byId = byId; out.proj = P;
+  const addW = (x, wk, v) => { x.wcost[wk] = (x.wcost[wk] || 0) + v; };
+  const wkTot = {};     // gasto por semana (empresa)
+  const bump = (wk, k, v) => { (wkTot[wk] = wkTot[wk] || { mat: 0, mo: 0, otr: 0, sue: 0, gg: 0, cob: 0 })[k] += v; };
+  let sinProyecto = 0, gastoMov = 0, porPagar = 0;
+  // movimientos de obra
+  S.movs.forEach(m => {
+    const v = num(m.monto), x = byId[m.pid], wk = D(m.fecha) != null ? weekIdx(D(m.fecha)) : 0;
+    gastoMov += v; if (m.pago === "Pendiente") porPagar += v;
+    if (!x) { sinProyecto += v; return; }
+    const k = m.cat === "Materiales" ? "mat" : m.cat === "Mano de obra" ? "mo" : "otr";
+    x[k] += v; addW(x, wk, v); bump(wk, k, v);
+  });
+  // obreros (detalle)
+  const obrTotal = o => num(o.dias) * num(o.jornal) + num(o.bonos) - num(o.descuentos);
+  S.obreros.forEach(o => {
+    const v = obrTotal(o), x = byId[o.pid], wk = D(o.fecha) != null ? weekIdx(D(o.fecha)) : 0;
+    gastoMov += v; if (o.pago === "Pendiente") porPagar += v;
+    if (!x) { sinProyecto += v; return; }
+    x.mo += v; addW(x, wk, v); bump(wk, "mo", v);
+    const dup = S.movs.some(m => m.pid === o.pid && m.cat === "Mano de obra" && D(m.fecha) != null && D(o.fecha) != null && weekIdx(D(m.fecha)) === weekIdx(D(o.fecha)));
+    if (dup) out.warnings.push("Mano de obra cargada dos veces (Movimientos y Obreros) en " + x.p.nombre + " semana " + weekIdx(D(o.fecha)) + ".");
+  });
+  // sueldos y gastos generales: prorrateo semanal
+  const weeks = {};
+  S.nomina.forEach(n => { if (n.estado) weeks[weekIdx(D(n.semana))] = weeks[weekIdx(D(n.semana))] || {}; });
+  S.gg.forEach(g => { if (D(g.fecha) != null) weeks[weekIdx(D(g.fecha))] = weeks[weekIdx(D(g.fecha))] || {}; });
+  let nominaTotal = 0, nominaPend = 0, ggTotal = 0, ggPend = 0, sueSinAsignar = 0, ggSinAsignar = 0;
+  const nomByWk = {}; S.nomina.forEach(n => { if (n.estado) nomByWk[weekIdx(D(n.semana))] = n; });
+  Object.keys(weeks).map(Number).forEach(wk => {
+    const wkS = start + 7 * (wk - 1), wkE = wkS + 6;
+    const w = P.map(x => {
+      const act = (x.ief == null || x.ief <= wkE) && (x.fef == null || x.fef >= wkS);
+      const camb = S.cambios.filter(c => c.pid === x.p.id && D(c.fecha) != null && D(c.fecha) <= wkE).reduce((a, c) => a + (c.tipo === "Deductivo" ? -Math.abs(num(c.monto)) : Math.abs(num(c.monto))), 0);
+      return act ? Math.max(0, x.monto + camb) : 0;
+    });
+    const sw = w.reduce((a, b) => a + b, 0);
+    const n = nomByWk[wk];
+    if (n) {
+      const tot = num(n.g != null ? n.g : C.sueldos.gerente) + num(n.c != null ? n.c : C.sueldos.contadora) + num(n.i != null ? n.i : C.sueldos.ingeniero);
+      nominaTotal += tot; if (n.estado === "Pendiente") nominaPend += tot;
+      if (sw > 0) P.forEach((x, i) => { const v = tot * w[i] / sw; x.sue += v; addW(x, wk, v); }); else sueSinAsignar += tot;
+      bump(wk, "sue", tot);
+    }
+    const ggw = S.gg.filter(g => D(g.fecha) != null && weekIdx(D(g.fecha)) === wk).reduce((a, g) => a + num(g.monto), 0);
+    if (ggw > 0) {
+      bump(wk, "gg", ggw);
+      if (C.prorratearGG) { if (sw > 0) P.forEach((x, i) => { const v = ggw * w[i] / sw; x.ggs += v; addW(x, wk, v); }); else ggSinAsignar += ggw; }
+    }
+  });
+  S.gg.forEach(g => { ggTotal += num(g.monto); if (g.pago === "Pendiente") ggPend += num(g.monto); });
+  // cobranza
+  const planRows = S.planillas.map(pl => {
+    const x = byId[pl.pid], ret = x && pl.tipo === "Planilla de avance" ? num(pl.monto) * num(x.p.retPct) : 0;
+    const neto = num(pl.monto) - ret;
+    const cob = S.cobros.filter(c => c.pid === pl.pid && String(c.nro).trim() === String(pl.nro).trim() && String(pl.nro).trim() !== "").reduce((a, c) => a + num(c.monto), 0);
+    const saldo = Math.max(0, neto - cob), lim = D(pl.limite);
+    const venc = saldo > 0.005 && lim != null && lim < today ? saldo : 0;
+    return { pl, ret, neto, cob, saldo, estado: saldo <= 0.005 ? "Cobrada" : cob > 0 ? "Cobro parcial" : "Pendiente", venc, atraso: venc > 0 ? today - lim : 0 };
+  });
+  out.planRows = planRows;
+  // por proyecto
+  P.forEach(x => {
+    const p = x.p, id = p.id;
+    x.cos = x.mat + x.mo + x.sue + x.ggs + x.otr; x.sal = x.vig - x.cos; x.pcon = x.vig > 0 ? x.cos / x.vig : 0;
+    x.cob = S.cobros.filter(c => c.pid === id).reduce((a, c) => a + num(c.monto), 0); x.cja = x.cob - x.cos;
+    const fin = p.estado === "Finalizado" || p.estado === "Entregado", avn = num(p.avance);
+    x.avn = avn; x.fin = fin;
+    x.cpy = fin ? x.cos : (avn >= C.avMin && avn > 0 ? x.cos / avn : x.cos); x.mpy = x.vig - x.cpy; x.mpc = x.vig > 0 ? x.mpy / x.vig : 0; x.dsv = avn - x.pcon;
+    const fc = D(p.fin_c); x.dre = fc == null ? null : (fin ? 0 : fc - today);
+    const ini = D(p.ini_p); x.plazo = fc != null && ini != null ? fc - ini : null;
+    x.dtr = x.ief == null ? null : Math.max(0, (x.fef != null ? x.fef : today) - x.ief);
+    let sem;
+    if (fin) sem = "FINALIZADO"; else if (p.estado === "Por iniciar") sem = "POR INICIAR"; else if (p.estado === "En pausa") sem = "EN PAUSA";
+    else if (x.cos > x.vig || (x.dre != null && x.dre < 0)) sem = "CRÍTICO";
+    else if ((x.dre != null && x.dre <= C.diasAlerta) || x.pcon - avn > C.tol || x.pcon >= C.umbral || x.cpy > x.vig) sem = "ALERTA"; else sem = "NORMAL";
+    x.sem = sem;
+    x.apl = fin ? "Cerrado" : x.dre == null ? "Sin fecha de fin" : x.dre < 0 ? "VENCIDO hace " + (-x.dre) + " días" : x.dre <= C.diasAlerta ? "Vence en " + x.dre + " días" : "En plazo";
+    const pr = planRows.filter(r => r.pl.pid === id);
+    x.emi = pr.reduce((a, r) => a + num(r.pl.monto), 0); x.pcb = pr.reduce((a, r) => a + r.saldo, 0); x.ven = pr.reduce((a, r) => a + r.venc, 0); x.rtn = pr.reduce((a, r) => a + r.ret, 0); x.pfa = x.vig - x.emi;
+    // utilidad
+    const u = {}; u.obj = x.vig * num(p.utilPct); u.ing = u.obj * num(p.ingPct); u.neta = u.obj - u.ing; u.av = fin ? 1 : avn; u.dev = u.ing * u.av;
+    u.pag = S.pagosUtil.filter(c => c.pid === id).reduce((a, c) => a + num(c.monto), 0); u.saldo = u.ing - u.pag; u.exig = Math.max(0, u.dev - u.pag); u.holg = x.mpy - u.obj;
+    u.sit = u.holg >= 0 ? "✔ El margen cubre la utilidad objetivo" : "⚠ Faltan Bs " + Math.round(-u.holg) + " para la utilidad objetivo"; x.u = u;
+    // ítems
+    x.items = S.items.filter(i => i.pid === id).map(i => {
+      const pres = num(i.cant) * num(i.pu), gast = S.movs.filter(m => m.itemId === i.id).reduce((a, m) => a + num(m.monto), 0);
+      const lp = pres > 0 ? gast / pres : 0, ia = num(i.avance);
+      return { i, pres, gast, saldo: pres - gast, lp, alerta: gast > pres && pres > 0 ? "⚠ Excede el presupuesto" : (i.avance != null && i.avance !== "" && lp - ia > C.tol ? "⚠ Gasto mayor al avance" : "✔ En orden") };
+    });
+    x.presItems = x.items.reduce((a, r) => a + r.pres, 0);
+  });
+  // totales
+  const T = { vig: 0, camb: 0, monto: 0, mat: 0, mo: 0, sue: 0, ggs: 0, otr: 0, cos: 0, sal: 0, cob: 0, cja: 0, cpy: 0, mpy: 0, emi: 0, pcb: 0, ven: 0, rtn: 0, pfa: 0, uIng: 0, uDev: 0, uPag: 0, uObj: 0 };
+  P.forEach(x => { ["vig", "camb", "monto", "mat", "mo", "sue", "ggs", "otr", "cos", "sal", "cob", "cja", "cpy", "mpy", "emi", "pcb", "ven", "rtn", "pfa"].forEach(k => T[k] += x[k]);
+    T.uIng += x.u.ing; T.uDev += x.u.dev; T.uPag += x.u.pag; T.uObj += x.u.obj; });
+  T.pcon = T.vig > 0 ? T.cos / T.vig : 0; T.mpc = T.vig > 0 ? T.mpy / T.vig : 0;
+  T.avn = T.vig > 0 ? P.reduce((a, x) => a + x.avn * x.vig, 0) / T.vig : 0;
+  out.T = T;
+  // caja
+  const gastoTotal = gastoMov + nominaTotal + ggTotal, pend = porPagar + nominaPend + ggPend;
+  out.aux = { gastoTotal, porPagar: pend, pagado: gastoTotal - pend, sinProyecto, sueSinAsignar, ggSinAsignar: C.prorratearGG ? ggSinAsignar : 0, ggNoAsignado: ggTotal - T.ggs, ggTotal, saldoCaja: T.cob - (gastoTotal - pend), nominaTotal };
+  // impuestos (estimación)
+  const cobFact = S.cobros.filter(c => c.factura).reduce((a, c) => a + num(c.monto), 0);
+  const compFact = S.movs.filter(m => m.factura && m.cat !== "Mano de obra").reduce((a, m) => a + num(m.monto), 0) + S.gg.filter(g => g.factura).reduce((a, g) => a + num(g.monto), 0);
+  const ivaD = cobFact * C.iva / (1 + C.iva), ivaC = compFact * C.iva / (1 + C.iva), it = cobFact * C.it;
+  out.imp = { cobFact, compFact, ivaD, ivaC, ivaPagar: ivaD - ivaC, it, total: ivaD - ivaC + it };
+  // semanas para gráficos
+  S.cobros.forEach(c => { if (D(c.fecha) != null) bump(weekIdx(D(c.fecha)), "cob", num(c.monto)); });
+  out.wkTot = wkTot;
+  out.last12 = Array.from({ length: 12 }, (_, k) => { const w = Math.max(1, out.curWeek - 11) + k, r = wkTot[w] || { mat: 0, mo: 0, otr: 0, sue: 0, gg: 0, cob: 0 }; return Object.assign({ w }, r, { tot: r.mat + r.mo + r.otr + r.sue + r.gg }); });
+  // alertas
+  const A = [];
+  if (out.aux.saldoCaja < 0) A.push({ n: "r", t: "Saldo de caja negativo: se ha pagado más de lo cobrado (" + fmtBs(out.aux.saldoCaja) + ")." });
+  if (T.ven > 0) A.push({ n: "r", t: "Hay planillas vencidas por cobrar por " + fmtBs(T.ven) + "." });
+  P.forEach(x => { if (x.sem === "CRÍTICO" || x.sem === "ALERTA") A.push({ n: x.sem === "CRÍTICO" ? "r" : "a", t: x.p.nombre + ": semáforo " + x.sem + " · " + x.apl + " · consumo " + pct(x.pcon) + " vs avance " + pct(x.avn, 0) }); });
+  out.warnings.forEach(w => A.push({ n: "a", t: w }));
+  if (Math.abs(sinProyecto) > 0.005) A.push({ n: "a", t: fmtBs(sinProyecto) + " de gastos sin proyecto válido." });
+  if (out.aux.sueSinAsignar > 0.005 || out.aux.ggSinAsignar > 0.005) A.push({ n: "a", t: "Sueldos o gastos generales sin repartir (ningún proyecto activo esa semana)." });
+  const exItems = P.reduce((a, x) => a + x.items.filter(r => r.alerta.startsWith("⚠ Excede")).length, 0);
+  if (exItems) A.push({ n: "a", t: exItems + " ítem(s) del presupuesto exceden su monto." });
+  const porPag = out.aux.porPagar; if (porPag > 0) A.push({ n: "i", t: "Por pagar: " + fmtBs(porPag) + " en compras, sueldos y gastos pendientes." });
+  out.alerts = A;
+  out.weekIdx = weekIdx;
+  out.curve = pid => {
+    const x = byId[pid]; if (!x) return [];
+    const rows = S.avance.filter(a => a.pid === pid).map(a => ({ w: weekIdx(D(a.semana)), prog: a.prog === "" || a.prog == null ? null : num(a.prog), real: a.real === "" || a.real == null ? null : num(a.real) })).sort((a, b) => a.w - b.w);
+    const maxW = Math.max(out.curWeek, ...rows.map(r => r.w), 1), res = []; let cum = 0, lp = null, lr = null;
+    for (let w = 1; w <= Math.min(maxW, 104); w++) {
+      cum += x.wcost[w] || 0; const r = rows.find(q => q.w === w);
+      if (r && r.prog != null) lp = r.prog; if (r && r.real != null) lr = r.real;
+      res.push({ w, prog: lp, real: w <= out.curWeek ? (lr == null ? 0 : lr) : null, fin: w <= out.curWeek && x.vig > 0 ? cum / x.vig : null });
+    }
+    return res;
+  };
+  return out;
+}
+
+/* ---- datos de ejemplo (equivalentes a los del Excel) ---- */
+function sampleData() {
+  const S = emptyState(); S.config.inicio = "2026-10-05"; S.config.empresa = "EMPRESA CONSTRUCTORA";
+  const mk = (n, c, ini, fin, av, ret) => ({ id: "p" + n, codigo: "PRO-00" + n, nombre: "Proyecto " + n, cliente: "Cliente " + n, tel: "", contacto: "", ubicacion: "", ciudad: "Santa Cruz de la Sierra", resp: "Ingeniero", monto: 100000,
+    ini_p: "2026-10-05", ini_r: ini, fin_c: fin, fin_r: "", estado: "En proceso", avance: av, retPct: ret, utilPct: 0.20, ingPct: 0.15, notas: "" });
+  S.projects = [mk(1, 0, "2026-10-05", "2026-12-12", 0.36, 0.05), mk(2, 0, "2026-10-06", "2027-01-30", 0.56, 0.05), mk(3, 0, "2026-10-07", "2026-12-18", 0.40, 0.05), mk(4, 0, "2026-10-05", "2026-12-31", 0.62, 0.05)];
+  S.projects[0].ubicacion = "Av. Ejemplo #123, Equipetrol";
+  [["1.01", "Excavación y movimiento de tierras", "m³", 100, 100, 1], ["1.02", "Hormigón de cimientos", "m³", 30, 1000, .4], ["2.01", "Muros de ladrillo", "m²", 350, 100, .2], ["3.01", "Acabados", "glb", 1, 25000, 0]]
+    .forEach((r, k) => S.items.push({ id: "i" + (k + 1), pid: "p1", nro: r[0], desc: r[1], unid: r[2], cant: r[3], pu: r[4], avance: r[5], cap: "" }));
+  S.cambios.push({ id: "c1", pid: "p2", fecha: "2026-11-02", tipo: "Adicional", monto: 8000, nro: "OC-01", desc: "Ampliación de muro (ejemplo)" });
+  const addMov = (f, pid, cat, prov, desc, cant, unid, monto, forma, pago, itemId, fac) => S.movs.push({ id: uid(), pid, fecha: f, cat, prov, desc, cant, unid, monto, forma, pago, itemId: itemId || "", factura: fac === "Sí", obs: "EJEMPLO" });
+  for (let w = 0; w < 5; w++) { const d = iso(D("2026-10-10") + 7 * w); [3000, 5000, 4000, 10000].forEach((a, i) => addMov(d, "p" + (i + 1), "Mano de obra", "Obreros (planilla semanal)", "Pago semanal a obreros - Semana " + (w + 1), "", "", a, "Efectivo", "Pagado", "", "No")); }
+  addMov("2026-10-06", "p1", "Materiales", "Ferretería (ejemplo)", "Cemento Portland 50 kg", 100, "bolsa", 5200, "Transferencia", "Pagado", "i2", "Sí");
+  addMov("2026-10-07", "p2", "Materiales", "Distribuidora de fierro (ejemplo)", "Fierro corrugado Ø12 mm", 60, "barra", 7800, "Transferencia", "Pagado", "", "Sí");
+  addMov("2026-10-14", "p3", "Materiales", "Áridos (ejemplo)", "Arena y ripio", 12, "m³", 3600, "Efectivo", "Pagado", "", "No");
+  addMov("2026-10-20", "p4", "Materiales", "Ladrillera (ejemplo)", "Ladrillo 6 huecos", 5000, "pza", 4250, "Transferencia", "Pagado", "", "Sí");
+  addMov("2026-10-27", "p4", "Materiales", "Ferretería (ejemplo)", "Cemento Portland 50 kg", 140, "bolsa", 7350, "Transferencia", "Pagado", "", "Sí");
+  addMov("2026-10-28", "p4", "Transporte y combustible", "Surtidor (ejemplo)", "Combustible volqueta", "", "", 450, "Efectivo", "Pagado", "", "Sí");
+  addMov("2026-11-03", "p2", "Materiales", "Ferretería (ejemplo)", "Cemento Portland 50 kg", 90, "bolsa", 4680, "Transferencia", "Pagado", "", "Sí");
+  addMov("2026-11-05", "p3", "Materiales", "Cerámicas (ejemplo)", "Cerámica de piso", 80, "m²", 2800, "Transferencia", "Pendiente", "", "Sí");
+  [["Juan Quispe", "Maestro albañil", 200, 0], ["Pedro Mamani", "Albañil", 150, 300], ["Luis Rojas", "Ayudante", 100, 0]].forEach(o => S.obreros.push({ id: uid(), pid: "p1", fecha: "2026-11-14", nombre: o[0], oficio: o[1], dias: 6, jornal: o[2], bonos: o[3], descuentos: 0, pago: "Pagado" }));
+  [["2026-10-20", "Papelería y oficina", "Librería (ejemplo)", "Papelería y tóner", 150, true], ["2026-11-01", "Alquiler de oficina", "Propietario (ejemplo)", "Alquiler de noviembre", 1500, false], ["2026-11-02", "Internet y telefonía", "Operador (ejemplo)", "Internet y celulares", 300, true]]
+    .forEach(g => S.gg.push({ id: uid(), fecha: g[0], cat: g[1], prov: g[2], desc: g[3], monto: g[4], pago: "Pagado", factura: g[5] }));
+  [["2026-10-05", 1, "Anticipo", "ANT-1", "Anticipo 30%", 30000, "2026-10-05"], ["2026-10-05", 2, "Anticipo", "ANT-1", "Anticipo 30%", 30000, "2026-10-05"], ["2026-10-05", 3, "Anticipo", "ANT-1", "Anticipo 30%", 30000, "2026-10-05"],
+   ["2026-10-05", 4, "Anticipo", "ANT-1", "Anticipo 30%", 30000, "2026-10-05"], ["2026-10-26", 2, "Planilla de avance", "PLA-1", "Planilla de avance Nº 1", 20000, "2026-11-06"],
+   ["2026-10-30", 4, "Planilla de avance", "PLA-1", "Planilla de avance Nº 1", 20000, "2026-11-05"], ["2026-11-09", 1, "Planilla de avance", "PLA-1", "Planilla de avance Nº 1", 25000, "2026-11-20"]]
+    .forEach(r => S.planillas.push({ id: uid(), pid: "p" + r[1], fecha: r[0], tipo: r[2], nro: r[3], desc: r[4], monto: r[5], limite: r[6] }));
+  [[1, "Anticipo", "ANT-1", 30000, "2026-10-05"], [2, "Anticipo", "ANT-1", 30000, "2026-10-05"], [3, "Anticipo", "ANT-1", 30000, "2026-10-05"], [4, "Anticipo", "ANT-1", 30000, "2026-10-05"], [4, "Planilla de avance", "PLA-1", 19000, "2026-11-05"]]
+    .forEach(r => S.cobros.push({ id: uid(), pid: "p" + r[0], fecha: r[4], concepto: r[1], nro: r[2], monto: r[3], forma: "Transferencia", factura: true }));
+  for (let k = 0; k < 5; k++) S.nomina.push({ semana: iso(D("2026-10-05") + 7 * k), estado: "Pagado" });
+  S.pagosUtil.push({ id: uid(), pid: "p1", fecha: "2026-11-07", concepto: "Anticipo de utilidad", monto: 500 });
+  [.10, .20, .30, .40, .50, .60, .70, .80, .90, 1].forEach((v, k) => S.avance.push({ id: uid(), pid: "p1", semana: iso(D("2026-10-05") + 7 * k), prog: v, real: [.06, .14, .22, .29, .36][k] != null ? [.06, .14, .22, .29, .36][k] : "" }));
+  return S;
+}
+/* ===== ENGINE_END ===== */
+if (typeof module !== "undefined") module.exports = { compute, sampleData, emptyState, D, iso, mondayOf };
+
+/* ===== PARSER_START ===== */
+const UNIT_RE = /^(m|m2|m²|m3|m³|ml|m\.l\.|km|kg|kgs|tn|t|ton|pza|pza\.|pz|pieza|piezas|und|und\.|u|un|ud|uds|unid|unid\.|unidad|gl|glb|gbl|global|glob|lt|lts|l|dia|día|dias|días|hr|hrs|h|jor|jornal|mes|meses|par|jgo|juego|set|rollo|bolsa|bls|saco|barra|punto|pto|ptos|est|ha|cm|mm|qq|lb|pg|pl|c\/u|cu|m\.c\.|m\.2|m\.3|m\^2|m\^3|ml\.|hrs\.|dia\.|gl\.)$/i;
+const NUM_RE = /^[-+]?\(?\d{1,3}(?:[.,]\d{3})+(?:[.,]\d+)?\)?$|^[-+]?\(?\d+(?:[.,]\d+)?\)?$/;
+const ITEMNO_RE = /^(?:\d+(?:\.\d+)*\.?|[A-Za-z]\.?\d+(?:\.\d+)*\.?|\d+[a-zA-Z]\)?|[IVXivx]+\.)$/;
+
+function normUnit(u) {
+  const x = u.replace(/\.$/, "").toLowerCase();
+  if (x === "m2" || x === "m^2" || x === "m.2") return "m²"; if (x === "m3" || x === "m^3" || x === "m.3") return "m³";
+  if (["und", "unid", "unidad", "u", "un", "ud", "uds", "pz", "pieza", "piezas"].includes(x)) return "pza";
+  if (["gl", "gbl", "global", "glob"].includes(x)) return "glb"; if (x === "m.l" || x === "ml") return "ml";
+  if (["dia", "día", "dias", "días"].includes(x)) return "día"; return u.replace(/\.$/, "");
+}
+function isNumTok(t) { return NUM_RE.test(t.replace(/^Bs\.?/i, "")); }
+function decimalConvention(tokens) {
+  let comma = 0, dot = 0;
+  tokens.forEach(t => {
+    if (!isNumTok(t)) return;
+    if (/^\d{1,3}(\.\d{3})+,\d+$/.test(t) || /^\d+,\d{1,2}$/.test(t)) comma++;
+    else if (/^\d{1,3}(,\d{3})+\.\d+$/.test(t) || /^\d+\.\d{1,2}$/.test(t)) dot++;
+  });
+  return comma >= dot ? "," : ".";
+}
+function parseNum(t, dec) {
+  let s = t.replace(/^Bs\.?/i, "").replace(/[()]/g, "").replace(/\s/g, "");
+  if (dec === ",") s = s.replace(/\./g, "").replace(",", "."); else s = s.replace(/,/g, "");
+  const n = parseFloat(s); return isFinite(n) ? n : NaN;
+}
+function close(a, b) { return Math.abs(a - b) <= Math.max(0.6, 0.012 * Math.abs(b)); }
+
+/* items de pdf.js ({str,x,y,w,h}) -> líneas de texto en orden de lectura */
+function itemsToLines(items) {
+  const its = items.filter(i => i.str && i.str.trim() !== "").map(i => Object.assign({}, i));
+  if (!its.length) return [];
+  const hs = its.map(i => i.h || 8).sort((a, b) => a - b), medH = hs[Math.floor(hs.length / 2)] || 8, tol = Math.max(2, 0.45 * medH);
+  its.sort((a, b) => b.y - a.y || a.x - b.x);
+  const lines = [];
+  its.forEach(it => {
+    let L = lines.find(l => Math.abs(l.y - it.y) <= tol);
+    if (!L) { L = { y: it.y, its: [] }; lines.push(L); }
+    L.its.push(it);
+  });
+  lines.sort((a, b) => b.y - a.y);
+  return lines.map(L => {
+    L.its.sort((a, b) => a.x - b.x);
+    let text = "", prevEnd = null;
+    L.its.forEach(it => {
+      const gap = prevEnd == null ? 0 : it.x - prevEnd;
+      if (text && !/\s$/.test(text) && !/^\s/.test(it.str) && gap > 0.8) text += " ";
+      text += it.str; prevEnd = it.x + (it.w || it.str.length * (it.h || 8) * 0.5);
+    });
+    return { y: L.y, x0: L.its[0].x, text: text.replace(/\s+/g, " ").trim() };
+  }).filter(l => l.text);
+}
+
+function parseBudget(lineTexts) {
+  const lines = lineTexts.map(l => (typeof l === "string" ? { text: l } : l)).map(l => Object.assign({}, l, { text: l.text.replace(/\u00a0/g, " ").trim() })).filter(l => l.text);
+  const allTok = []; lines.forEach(l => l.text.split(/\s+/).forEach(t => allTok.push(t)));
+  const dec = decimalConvention(allTok);
+  const rows = [], declared = []; let cap = "", seq = 0; const conts = [];
+  const isHeader = l => (l.match(/descripci|cantidad|unitario|\bp\.?\s?u\.?\b|unidad|\bund\b|\bitem\b|ítem|parcial|precio/gi) || []).length >= 2 && !/\d{2,}[.,]\d{2}/.test(l);
+  const isFooter = l => /^p[aá]g(ina)?\.?\s*\d+/i.test(l) || /^\d+\s*(de|\/)\s*\d+$/.test(l) || /^page\s*\d+/i.test(l);
+  lines.forEach(L => {
+    const line = L.text;
+    if (isHeader(line) || isFooter(line)) return;
+    const tk = line.split(/\s+/);
+    if (/^(sub\s?total|total|suma|costo\s+total|monto\s+total|son:?|literal)\b/i.test(line)) {
+      const nums = tk.filter(isNumTok).map(t => parseNum(t, dec)).filter(n => isFinite(n));
+      if (/^total|^costo\s+total|^monto\s+total/i.test(line) && !/^sub/i.test(line) && nums.length) declared.push(nums[nums.length - 1]);
+      return;
+    }
+    let i = tk.length; while (i > 0 && isNumTok(tk[i - 1])) i--;
+    const tail = tk.slice(i), n = tail.length, nums = tail.map(t => parseNum(t, dec));
+    const flags = [];
+    if (n >= 2 && i >= 1) {
+      let j = n - 3, pick = -1;
+      for (let k = n - 3; k >= 0; k--) if (close(nums[k] * nums[k + 1], nums[k + 2])) { pick = k; break; }
+      let cant, pu, total;
+      if (pick >= 0) { cant = nums[pick]; pu = nums[pick + 1]; total = nums[pick + 2]; j = pick; }
+      else if (n >= 3) { j = n - 3; cant = nums[j]; pu = nums[j + 1]; total = nums[j + 2]; flags.push("calc"); }
+      else { j = 0; cant = nums[0]; total = nums[1]; pu = cant ? total / cant : total; flags.push("est"); }
+      let head = tk.slice(0, i).concat(tk.slice(i, i + j));
+      let unid = "";
+      if (head.length >= 2 && UNIT_RE.test(head[head.length - 1])) unid = normUnit(head.pop());
+      else if (head.length >= 3 && /^[A-Za-zµ²³.\/]{1,5}$/.test(head[head.length - 1]) && !ITEMNO_RE.test(head[head.length - 1])) { unid = normUnit(head.pop()); flags.push("unit?"); }
+      let nro = "";
+      if (head.length >= 1 && ITEMNO_RE.test(head[0]) && (head.length >= 2 || unid)) nro = head.shift().replace(/\.$/, "");
+      const desc = head.join(" ").trim();
+      if (!unid) flags.push("unit");
+      if (!nro) { nro = String(++seq).padStart(2, "0"); flags.push("nro"); }
+      rows.push({ type: "item", nro, desc, unid, cant, pu, total, cap, flags, y: L.y, pg: L.pg, above: [], below: [] }); return;
+    }
+    if (n === 1 && i >= 2 && UNIT_RE.test(tk[i - 1])) {
+      let head = tk.slice(0, i); const unid = normUnit(head.pop()); let nro = ""; if (head.length >= 2 && ITEMNO_RE.test(head[0])) nro = head.shift().replace(/\.$/, "");
+      rows.push({ type: "item", nro: nro || String(++seq).padStart(2, "0"), desc: head.join(" "), unid, cant: 1, pu: nums[0], total: nums[0], cap, flags: ["est"], y: L.y, pg: L.pg, above: [], below: [] }); return;
+    }
+    const first = tk[0], rest = tk.slice(1).join(" ");
+    const upper = s => /[A-ZÁÉÍÓÚÑ]{3}/.test(s) && s === s.toUpperCase();
+    if (n <= 1 && tk.length >= 2 && ITEMNO_RE.test(first) && upper(rest.replace(/[\d.,]+/g, "").trim()) && rest.length <= 90) { cap = (first.replace(/\.$/, "") + " " + rest.replace(/\s[\d.,]+$/, "")).trim(); rows.push({ type: "cap", nro: first.replace(/\.$/, ""), desc: rest.replace(/\s[\d.,]+$/, "") }); return; }
+    if (n === 0 && upper(line) && line.length >= 4 && line.length <= 90 && !/:/.test(line)) { if (!rows.some(r => r.type === "item") && /^(presupuesto|planilla|c[oó]mputo|propuesta|cotizaci[oó]n|an[aá]lisis|lista|detalle|resumen|budget)\b/i.test(line)) return; cap = line; rows.push({ type: "cap", nro: "", desc: line }); return; }
+    if (!/:/.test(line.slice(0, 18))) conts.push({ L, at: rows.length });
+  });
+  // líneas de descripción sin números: se asignan al ítem más cercano (por posición vertical; si no hay posición, al ítem anterior)
+  const itemsIdx = rows.map((r, k) => r.type === "item" ? k : -1).filter(k => k >= 0);
+  conts.forEach(c => {
+    const prev = itemsIdx.filter(k => k < c.at).pop(), next = itemsIdx.find(k => k >= c.at);
+    const L = c.L; let target = null, where = "below";
+    if (L.y == null) { if (prev != null && c.at - 1 === prev) target = prev; }
+    else {
+      const cand = [prev, next].filter(k => k != null && rows[k].pg === L.pg && rows[k].y != null).map(k => ({ k, d: Math.abs(rows[k].y - L.y) })).filter(x => x.d <= 16);
+      cand.sort((a, b) => a.d - b.d || (rows[b.k].y - rows[a.k].y));
+      if (cand.length) { target = cand[0].k; where = L.y > rows[target].y ? "above" : "below"; }
+    }
+    if (target != null) (where === "above" ? rows[target].above : rows[target].below).push(L.text);
+  });
+  rows.forEach(r => {
+    if (r.type !== "item") return;
+    r.desc = r.above.concat(r.desc ? [r.desc] : [], r.below).join(" ").replace(/\s+/g, " ").trim(); delete r.above; delete r.below; delete r.y; delete r.pg;
+    if (!r.desc) r.flags.push("desc");
+    if (!r.flags.includes("calc") && !close(r.cant * r.pu, r.total)) r.flags.push("calc");
+  });
+  const sum = rows.filter(r => r.type === "item").reduce((a, r) => a + (isFinite(r.total) ? r.total : 0), 0);
+  return { rows, sum, declared: declared.length ? declared[declared.length - 1] : null, dec, info: detectInfo(lines.map(l => l.text)) };
+}
+
+function detectInfo(lines) {
+  const info = {}; const head = lines.slice(0, 40);
+  const grab = (re, key) => { for (const l of head) { const m = re.exec(l); if (m && !info[key]) { info[key] = m[2].trim().replace(/\s{2,}/g, " "); return; } } };
+  grab(/^(proyecto|obra|nombre del proyecto|nombre de la obra|objeto|referencia)\s*[:\-–]\s*(.{3,120})$/i, "nombre");
+  grab(/^(cliente|propietario|contratante|solicitante|entidad|se[ñn]or(?:es)?|se[ñn]or)\s*[:\-–]\s*(.{3,100})$/i, "cliente");
+  grab(/^(ubicaci[oó]n|lugar|direcci[oó]n|localizaci[oó]n|ubicado en)\s*[:\-–]\s*(.{3,140})$/i, "ubicacion");
+  grab(/^(tel[eé]fono|tel\.?|cel\.?|celular|contacto)\s*[:\-–]\s*(.{3,60})$/i, "tel");
+  grab(/^(fecha)\s*[:\-–]\s*(.{4,30})$/i, "fecha");
+  grab(/^(plazo(?: de ejecuci[oó]n)?)\s*[:\-–]\s*(.{2,40})$/i, "plazo");
+  return info;
+}
+/* ===== PARSER_END ===== */
+if (typeof module !== "undefined") module.exports = { parseBudget, itemsToLines, parseNum, decimalConvention };
+
+/* ===== CORE_START ===== */
+const KEY = "ctrlobras_v1";
+let S = null, R = null;
+const VIEW = { tab: "panel", pid: null, sub: "resumen", page: null, week: null };
+const $ = (s, el) => (el || document).querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const KEYS = { nomina: "semana" };
+const kkey = k => KEYS[k] || "id";
+const ARRS = ["projects", "items", "cambios", "movs", "obreros", "gg", "planillas", "cobros", "nomina", "pagosUtil", "avance"];
+
+function loadLocal() {
+  try { const j = localStorage.getItem(KEY); if (j) { const o = JSON.parse(j), e = emptyState(); const s = Object.assign(e, o); s.config = Object.assign(e.config, o.config || {}); s.config.sueldos = Object.assign(e.config.sueldos, (o.config || {}).sueldos || {}); ARRS.forEach(k => { if (!Array.isArray(s[k])) s[k] = []; }); return s; } } catch (e) { }
+  return emptyState();
+}
+function persist() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { toast("No se pudo guardar en este dispositivo (memoria llena)."); } }
+function recompute() { R = compute(S, todayDn()); }
+function upsert(kind, rec, quiet) {
+  const key = kkey(kind); if (!rec[key]) rec[key] = uid();
+  const arr = S[kind], i = arr.findIndex(x => x[key] === rec[key]); if (i >= 0) arr[i] = rec; else arr.push(rec);
+  persist(); Sync.write(kind, rec, false); recompute(); if (!quiet) render(); return rec;
+}
+function removeRec(kind, id) {
+  const key = kkey(kind); S[kind] = S[kind].filter(x => x[key] !== id); persist(); Sync.write(kind, { [key]: id }, true);
+  if (kind === "projects") ARRS.forEach(k => { if (k === "projects" || k === "nomina") return; const dead = S[k].filter(x => x.pid === id); S[k] = S[k].filter(x => x.pid !== id); dead.forEach(x => Sync.write(k, x, true)); });
+  recompute(); render();
+}
+function toast(t, ms) { const e = document.createElement("div"); e.className = "toast"; e.textContent = t; document.body.appendChild(e); setTimeout(() => e.remove(), ms || 2600); }
+const projName = id => { const p = S.projects.find(x => x.id === id); return p ? p.nombre : "—"; };
+const nextCode = () => { let n = S.projects.length + 1; while (S.projects.some(p => p.codigo === "PRO-" + String(n).padStart(3, "0"))) n++; return "PRO-" + String(n).padStart(3, "0"); };
+
+/* ---- permisos por rol (a nivel de pantalla) ---- */
+const ROLES = { gerente: "Gerente / propietario", contadora: "Contadora", ingeniero: "Ingeniero", consulta: "Solo consulta" };
+const PERM = { gerente: "*", contadora: ["movs", "gg", "planillas", "cobros", "nomina", "pagosUtil", "obreros"], ingeniero: ["movs", "obreros", "items", "avance", "projects", "cambios"], consulta: [] };
+function myRole() { return Sync.on ? (Sync.role || "consulta") : (S.config.rolLocal || "gerente"); }
+function can(kind) { const p = PERM[myRole()]; return p === "*" || (p && p.includes(kind)); }
+
+/* ---- modal y formularios ---- */
+function closeModal() { document.querySelectorAll(".ov").forEach(o => o.remove()); }
+function modal(html, wide) {
+  closeModal(); const o = document.createElement("div"); o.className = "ov"; o.innerHTML = '<div class="sheet' + (wide ? " wide" : "") + '">' + html + "</div>";
+  o.addEventListener("mousedown", e => { if (e.target === o) closeModal(); }); document.body.appendChild(o); return o;
+}
+function fieldHtml(f, v) {
+  const val = v[f.k] != null ? v[f.k] : (f.def != null ? f.def : ""); const id = "ff_" + f.k; let inp = "";
+  const opt = (o, sel) => { const ov = typeof o === "object" ? o.v : o, ol = typeof o === "object" ? o.l : o; return '<option value="' + esc(ov) + '"' + (String(ov) === String(sel) ? " selected" : "") + ">" + esc(ol) + "</option>"; };
+  if (f.t === "select") inp = '<select id="' + id + '" name="' + f.k + '">' + (f.blank ? '<option value="">—</option>' : "") + (f.opts || []).map(o => opt(o, val)).join("") + "</select>";
+  else if (f.t === "proj") inp = '<select id="' + id + '" name="' + f.k + '" data-proj="1">' + S.projects.map(p => opt({ v: p.id, l: p.codigo + " · " + p.nombre }, val || VIEW.pid)).join("") + "</select>";
+  else if (f.t === "item") inp = '<select id="' + id + '" name="' + f.k + '" data-item="1" data-val="' + esc(val) + '"></select>';
+  else if (f.t === "area") inp = '<textarea id="' + id + '" name="' + f.k + '" placeholder="' + esc(f.ph || "") + '">' + esc(val) + "</textarea>";
+  else if (f.t === "check") inp = '<input type="checkbox" id="' + id + '" name="' + f.k + '"' + (val ? " checked" : "") + ">";
+  else if (f.t === "photo") inp = '<input type="file" id="' + id + '" name="' + f.k + '" accept="image/*" capture="environment"><div class="ph" id="ph_' + f.k + '"></div>';
+  else if (f.t === "pct") inp = '<input id="' + id + '" name="' + f.k + '" type="number" step="0.1" inputmode="decimal" value="' + (val === "" ? "" : Math.round(num(val) * 1000) / 10) + '" placeholder="%">';
+  else { const type = f.t === "money" || f.t === "number" ? "number" : f.t || "text"; inp = '<input id="' + id + '" name="' + f.k + '" type="' + type + '" ' + (type === "number" ? 'step="' + (f.step || (f.t === "money" ? "0.01" : "any")) + '" inputmode="decimal" ' : "") + 'value="' + esc(val) + '" placeholder="' + esc(f.ph || "") + '"' + (f.list ? ' list="dl_' + f.k + '"' : "") + (f.req ? " required" : "") + ">" + (f.list ? '<datalist id="dl_' + f.k + '">' + f.list.map(x => '<option value="' + esc(x) + '">').join("") + "</datalist>" : ""); }
+  return '<div class="f"' + (f.hide ? ' style="display:none"' : "") + '><label for="' + id + '">' + esc(f.l) + (f.req ? " *" : "") + "</label>" + inp + (f.help ? "<small>" + esc(f.help) + "</small>" : "") + "</div>";
+}
+function openForm(o) {
+  const v = o.v || {}; let body = '<h2>' + esc(o.title) + '</h2><form id="mf" novalidate>'; let row = [];
+  const flush = () => { if (row.length) { body += '<div class="frow">' + row.join("") + "</div>"; row = []; } };
+  o.fields.forEach(f => { const h = fieldHtml(f, v); if (f.half) { row.push(h); if (row.length === 2) flush(); } else { flush(); body += h; } }); flush();
+  body += '<div class="acts">' + (o.onDelete ? '<button type="button" class="btn r s" id="mdel">Eliminar</button>' : "") + '<span class="sp"></span><button type="button" class="btn g" id="mcan">Cancelar</button>' + (o.again ? '<button type="submit" class="btn g" data-again="1">Guardar y otro</button>' : "") + '<button type="submit" class="btn o">Guardar</button></div></form>';
+  const ov = modal(body, o.wide), form = $("#mf", ov); const photos = {};
+  const fillItems = () => { const ps = form.querySelector("[data-proj]"), is = form.querySelector("[data-item]"); if (!is) return; const pid = ps ? ps.value : VIEW.pid;
+    is.innerHTML = '<option value="">Sin ítem</option>' + S.items.filter(i => i.pid === pid).map(i => '<option value="' + i.id + '">' + esc(i.nro + " · " + i.desc.slice(0, 50)) + "</option>").join(""); is.value = is.dataset.val || ""; is.dataset.val = ""; };
+  fillItems(); const ps = form.querySelector("[data-proj]"); if (ps) ps.addEventListener("change", fillItems);
+  const pf = form.querySelector('input[type=file]'); if (pf) pf.addEventListener("change", async () => { try { const b = await resizeImage(pf.files[0]); photos.blob = b; const ph = $("#ph_" + pf.name, ov); ph.innerHTML = '<img src="' + URL.createObjectURL(b) + '">'; } catch (e) { toast("No se pudo leer la foto."); } });
+  if (v.fotos && v.fotos.length) { const ph = form.querySelector(".ph"); if (ph) hydratePhotos(ph, v.fotos); }
+  $("#mcan", ov).onclick = closeModal; if (o.onDelete) $("#mdel", ov).onclick = () => { if (confirm("¿Eliminar este registro?")) { closeModal(); o.onDelete(); } };
+  form.addEventListener("submit", async e => {
+    e.preventDefault(); const again = e.submitter && e.submitter.dataset.again; const out = Object.assign({}, v);
+    for (const f of o.fields) { const el = form.elements[f.k]; if (!el) continue; let x;
+      if (f.t === "check") x = el.checked; else if (f.t === "pct") x = el.value === "" ? "" : num(el.value) / 100; else if (f.t === "money" || f.t === "number") x = el.value === "" ? "" : num(el.value); else if (f.t === "photo") continue; else x = el.value;
+      if (f.req && (x === "" || x == null)) { toast("Falta: " + f.l); el.focus(); return; } out[f.k] = x; }
+    if (photos.blob) { try { out.fotos = (out.fotos || []).concat([await savePhoto(photos.blob)]); } catch (er) { toast("No se pudo guardar la foto."); } }
+    const r = o.onSave(out); if (r === false) return; closeModal(); if (again && o.again) o.again();
+  });
+  setTimeout(() => { const f1 = form.querySelector("input:not([type=file]):not([type=checkbox]),select"); if (f1 && !f1.value) f1.focus(); }, 60); return ov;
+}
+
+/* ---- fotos (local: IndexedDB; compartido: capacidad assets) ---- */
+function resizeImage(file) {
+  return new Promise((res, rej) => { const img = new Image(), u = URL.createObjectURL(file); img.onload = () => { const m = 1280, k = Math.min(1, m / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); c.toBlob(b => b ? res(b) : rej(), "image/jpeg", 0.72); URL.revokeObjectURL(u); }; img.onerror = rej; img.src = u; });
+}
+const IDB = { db: null, open() { return new Promise((res, rej) => { if (this.db) return res(this.db); const r = indexedDB.open("ctrlobras_fotos", 1); r.onupgradeneeded = () => r.result.createObjectStore("f"); r.onsuccess = () => { this.db = r.result; res(this.db); }; r.onerror = () => rej(r.error); }); },
+  async put(id, blob) { const d = await this.open(); return new Promise((res, rej) => { const t = d.transaction("f", "readwrite"); t.objectStore("f").put(blob, id); t.oncomplete = res; t.onerror = () => rej(t.error); }); },
+  async get(id) { const d = await this.open(); return new Promise((res, rej) => { const r = d.transaction("f").objectStore("f").get(id); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); } };
+async function savePhoto(blob) {
+  if (Sync.assets) { try { const r = await Sync.assets.upload(blob); return { id: r.id, url: r.url }; } catch (e) { toast("No se pudo subir la foto a la nube; se guarda en este dispositivo."); } }
+  const id = "loc_" + uid(); await IDB.put(id, blob); return { id };
+}
+async function hydratePhotos(box, fotos) {
+  box.innerHTML = ""; for (const f of fotos) { const im = document.createElement("img"); if (f.url) im.src = f.url; else { try { const b = await IDB.get(f.id); if (b) im.src = URL.createObjectURL(b); } catch (e) { } } box.appendChild(im); }
+}
+
+/* ---- guardar archivos (capacidad downloads o enlace normal) ---- */
+async function saveFile(name, data, mime) {
+  const blob = data instanceof Blob ? data : new Blob([data], { type: mime || "application/octet-stream" });
+  if (Sync.downloads) { try { await Sync.downloads.save({ filename: name, data: blob }); return true; } catch (e) { if (e && e.code === "declined") return false; } }
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); return true;
+}
+
+/* ---- exportar / importar ---- */
+function exportExcel() {
+  if (typeof XLSX === "undefined") { toast("La librería de Excel no cargó (¿sin internet?)."); return; }
+  const wb = XLSX.utils.book_new(), T = R.T, add = (n, rows) => XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), n.slice(0, 31));
+  add("Resumen proyectos", R.proj.map(x => ({ Código: x.p.codigo, Proyecto: x.p.nombre, Cliente: x.p.cliente, Ubicación: x.p.ubicacion, Estado: x.p.estado, Inicio: x.p.ini_p, "Fin contractual": x.p.fin_c, "Monto vigente": x.vig, Materiales: x.mat, "Mano de obra": x.mo, Sueldos: x.sue, "Gastos generales": x.ggs, Otros: x.otr, "Costo acumulado": x.cos, Saldo: x.sal, "% consumido": x.pcon, "Avance físico": x.avn, Cobrado: x.cob, "Saldo de caja": x.cja, "Margen proyectado": x.mpy, Semáforo: x.sem, "Emitido": x.emi, "Por cobrar": x.pcb, Vencido: x.ven, "Retención garantía": x.rtn, "Utilidad ingeniero": x.u.ing, "Utilidad devengada": x.u.dev, "Utilidad pagada": x.u.pag })));
+  add("Ítems presupuesto", R.proj.flatMap(x => x.items.map(r => ({ Proyecto: x.p.nombre, Nº: r.i.nro, Descripción: r.i.desc, Unidad: r.i.unid, Cantidad: r.i.cant, "P. unitario": r.i.pu, Presupuesto: r.pres, Gastado: r.gast, Saldo: r.saldo, Alerta: r.alerta }))));
+  ARRS.forEach(k => add("d_" + k, S[k].length ? S[k] : [{}]));
+  add("d_config", [Object.assign({}, S.config, { sueldos: JSON.stringify(S.config.sueldos) })]);
+  const out = XLSX.write(wb, { type: "array", bookType: "xlsx" });
+  return saveFile("Control_Obras_" + iso(todayDn()) + ".xlsx", new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
+}
+async function importExcel(file) {
+  const wb = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: false }); const N = Object.assign(emptyState(), { }); let n = 0;
+  ARRS.forEach(k => { const ws = wb.Sheets["d_" + k]; if (!ws) return; N[k] = XLSX.utils.sheet_to_json(ws, { defval: "" }).filter(r => Object.keys(r).length && (r[kkey(k)] !== "" && r[kkey(k)] != null)).map(r => { Object.keys(r).forEach(c => { if (r[c] === "TRUE") r[c] = true; if (r[c] === "FALSE") r[c] = false; }); return r; }); n += N[k].length; });
+  const cf = wb.Sheets["d_config"]; if (cf) { const r = XLSX.utils.sheet_to_json(cf, { defval: "" })[0]; if (r) { try { r.sueldos = JSON.parse(r.sueldos); } catch (e) { r.sueldos = N.config.sueldos; } N.config = Object.assign(N.config, r); } }
+  if (!n) throw new Error("El archivo no tiene hojas «d_…» de esta app. Usa un Excel exportado desde la app.");
+  return N;
+}
+function exportJSON() { return saveFile("Copia_Control_Obras_" + iso(todayDn()) + ".json", JSON.stringify(S, null, 1), "application/json"); }
+
+/* ---- lector de presupuestos: PDF / Excel / texto ---- */
+async function pdfToLines(file, onProg) {
+  const lib = window.pdfjsLib; if (!lib) throw new Error("No cargó el lector de PDF (¿sin internet?). Prueba con «Pegar texto» o con un Excel.");
+  lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const doc = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise, lines = []; let chars = 0;
+  for (let p = 1; p <= doc.numPages; p++) {
+    if (onProg) onProg(p, doc.numPages); const page = await doc.getPage(p), tc = await page.getTextContent();
+    const items = tc.items.map(i => ({ str: i.str, x: i.transform[4], y: i.transform[5], w: i.width, h: i.height })); chars += items.reduce((a, i) => a + i.str.length, 0);
+    itemsToLines(items).forEach(l => lines.push({ text: l.text, y: l.y, pg: p }));
+  }
+  if (chars < 40) { const e = new Error("scan"); e.scan = true; throw e; }
+  return lines;
+}
+async function excelToBudget(file) {
+  const wb = XLSX.read(await file.arrayBuffer(), { type: "array" }), ws = wb.Sheets[wb.SheetNames[0]], A = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "", raw: true });
+  const KW = { nro: /^(item|ítem|nº|n°|no\.?|nro)/i, desc: /descrip|detalle|concepto|actividad/i, unid: /^(unid|und|u\.?m|unidad)/i, cant: /cant/i, pu: /unit|p\.?\s?u|precio/i, total: /total|parcial|importe|monto/i };
+  let hr = A.findIndex(r => r.filter(c => typeof c === "string" && Object.values(KW).some(re => re.test(c.trim()))).length >= 3); if (hr < 0) throw new Error("No encontré la fila de encabezados (Ítem, Descripción, Unidad, Cantidad, Precio, Total).");
+  const col = {}; A[hr].forEach((c, i) => { const s = String(c).trim(); Object.entries(KW).forEach(([k, re]) => { if (col[k] == null && re.test(s)) col[k] = i; }); });
+  const strs = []; A.slice(hr + 1).forEach(r => r.forEach(c => { if (typeof c === "string") strs.push(c); })); const dec = decimalConvention(strs);
+  const N = v => typeof v === "number" ? v : (isNumTok(String(v).trim()) ? parseNum(String(v).trim(), dec) : NaN);
+  const lines = []; A.slice(hr + 1).forEach(r => {
+    const g = k => (col[k] == null ? "" : r[col[k]]); const d = String(g("desc")).trim(), nro = String(g("nro")).trim(), cant = N(g("cant")), pu = N(g("pu")), tot = N(g("total"));
+    if (/^total/i.test(d) || /^total/i.test(nro)) { if (isFinite(tot)) lines.push("TOTAL " + tot.toFixed(2).replace(".", ",")); return; }
+    if (!d && !isFinite(tot)) return;
+    if (isFinite(cant) && isFinite(pu)) lines.push({ x: 1, nro, d, u: String(g("unid")).trim(), cant, pu, tot: isFinite(tot) ? tot : cant * pu }); else if (d) lines.push({ cap: 1, nro, d });
+  });
+  const rows = []; let cap = "";
+  lines.forEach(l => { if (typeof l === "string") return; if (l.cap) { cap = (l.nro + " " + l.d).trim(); rows.push({ type: "cap", nro: l.nro, desc: l.d }); } else rows.push({ type: "item", nro: l.nro || String(rows.length + 1), desc: l.d, unid: normUnit(l.u || ""), cant: l.cant, pu: l.pu, total: l.tot, cap, flags: Math.abs(l.cant * l.pu - l.tot) > Math.max(0.6, 0.012 * l.tot) ? ["calc"] : [] }); });
+  const decl = lines.filter(l => typeof l === "string").map(l => parseNum(l.replace(/^TOTAL\s*/, ""), ",")).pop();
+  return { rows, sum: rows.filter(r => r.type === "item").reduce((a, r) => a + r.total, 0), declared: decl != null ? decl : null, dec, info: {} };
+}
+
+/* ---- pantalla de revisión de presupuesto (PDF / Excel / texto) ---- */
+function reviewBudget(parsed, opts) {
+  const W = { rows: parsed.rows.map(r => Object.assign({}, r)), declared: parsed.declared, mode: "append" };
+  const info = Object.assign({}, parsed.info), newProj = !!opts.newProject;
+  const sumItems = () => W.rows.filter(r => r.type === "item").reduce((a, r) => a + num(r.cant) * num(r.pu), 0);
+  const draw = () => {
+    const items = W.rows.filter(r => r.type === "item"), sum = sumItems(), bad = items.filter(r => (r.flags || []).some(f => ["calc", "desc", "est"].includes(f)) && !r.ok).length;
+    const diff = W.declared != null ? sum - W.declared : null;
+    $("#rvsum").innerHTML = '<span class="chip">' + items.length + " ítems</span> <span class=\"chip\">Suma: " + fmtBs(sum) + "</span> " + (W.declared != null ? '<span class="chip ' + (Math.abs(diff) < 1 ? "ok" : "bad") + '">Total del documento: ' + fmtBs(W.declared) + (Math.abs(diff) < 1 ? " ✔ cuadra" : " · diferencia " + fmtBs(diff)) + "</span> " : '<span class="chip warn">No se encontró un total en el documento</span> ') + (bad ? '<span class="chip warn">⚠ ' + bad + " fila(s) por revisar</span>" : '<span class="chip ok">✔ sin avisos</span>');
+    if (newProj && $("#ff_monto")) $("#ff_monto").placeholder = "Suma de ítems: " + fmt(sum);
+  };
+  let h = '<h2>Revisar presupuesto</h2><p class="hint">Corrige lo que haga falta antes de guardar: cada fila es un ítem. Las filas con ⚠ tienen datos dudosos (por ejemplo, cantidad × precio no coincide con el total).</p>';
+  if (newProj) h += '<form id="pf">' + [{ k: "nombre", l: "Nombre del proyecto", req: 1 }, { k: "cliente", l: "Cliente", half: 1 }, { k: "tel", l: "Teléfono / contacto", half: 1 }, { k: "ubicacion", l: "Ubicación", half: 0 }].map(f => fieldHtml(f, info)).join("") +
+    '<div class="frow">' + fieldHtml({ k: "ini_p", l: "Inicio programado", t: "date" }, {}) + fieldHtml({ k: "fin_c", l: "Fin contractual", t: "date" }, {}) + "</div>" + fieldHtml({ k: "monto", l: "Monto del contrato (Bs)", t: "money", help: "Déjalo vacío para usar la suma de los ítems." }, {}) + "</form>";
+  else h += '<div class="f"><label>Qué hacer con los ítems actuales</label><select id="rvmode"><option value="append">Agregar a los que ya existen</option><option value="replace">Reemplazar todos los ítems del proyecto</option></select></div>';
+  h += '<div id="rvsum" style="margin:8px 0"></div><div class="tw"><table class="rv"><thead><tr><th>Nº</th><th>Descripción</th><th>Unid.</th><th class="n">Cant.</th><th class="n">P. unit.</th><th class="n">Total</th><th></th></tr></thead><tbody id="rvb"></tbody></table></div>' +
+    '<div class="acts"><button class="btn g s" id="rvadd">+ Fila</button><button class="btn g s" id="rvcap">+ Capítulo</button><span class="sp"></span><button class="btn g" id="rvcan">Cancelar</button><button class="btn o" id="rvok">Guardar ítems</button></div>';
+  const ov = modal(h, true);
+  const body = $("#rvb", ov);
+  const rowHtml = (r, k) => r.type === "cap" ? '<tr class="cap" data-k="' + k + '"><td><input data-f="nro" value="' + esc(r.nro) + '" style="width:60px"></td><td colspan="5"><input data-f="desc" value="' + esc(r.desc) + '"></td><td><button class="btn r s" data-del="' + k + '">✕</button></td></tr>' :
+    '<tr data-k="' + k + '"><td><input data-f="nro" value="' + esc(r.nro) + '" style="width:62px"></td><td><input class="d" data-f="desc" value="' + esc(r.desc) + '"' + ((r.flags || []).includes("desc") ? ' style="border-color:#c00"' : "") + '></td><td><input class="u" data-f="unid" value="' + esc(r.unid) + '"></td><td class="n"><input class="q" data-f="cant" type="number" step="any" value="' + esc(r.cant) + '"></td><td class="n"><input class="q" data-f="pu" type="number" step="any" value="' + esc(r.pu) + '"></td><td class="n" id="tt' + k + '">' + fmt(num(r.cant) * num(r.pu)) + ((r.flags || []).includes("calc") && Math.abs(num(r.cant) * num(r.pu) - num(r.total)) > 0.6 ? '<div class="neg hint">⚠ el documento dice ' + fmt(r.total) + ' <a href="#" data-use="' + k + '">usar</a></div>' : "") + '</td><td style="white-space:nowrap"><button class="btn g s" data-up="' + k + '" title="Unir con la fila de arriba">⤴</button> <button class="btn r s" data-del="' + k + '">✕</button></td></tr>';
+  const paint = () => { body.innerHTML = W.rows.map(rowHtml).join(""); draw(); };
+  paint();
+  body.addEventListener("input", e => { const tr = e.target.closest("tr"), k = +tr.dataset.k, f = e.target.dataset.f, r = W.rows[k]; if (!f) return; r[f] = (f === "cant" || f === "pu") ? e.target.value : e.target.value; r.ok = true;
+    if (r.type === "item") { const t = $("#tt" + k, ov); if (t) t.firstChild.textContent = fmt(num(r.cant) * num(r.pu)); } draw(); });
+  body.addEventListener("click", e => { const t = e.target.closest("[data-del],[data-up],[data-use]"); if (!t) return; e.preventDefault();
+    if (t.dataset.del != null) { W.rows.splice(+t.dataset.del, 1); paint(); }
+    else if (t.dataset.use != null) { const r = W.rows[+t.dataset.use]; r.pu = r.cant ? Math.round(num(r.total) / num(r.cant) * 10000) / 10000 : r.total; r.ok = true; paint(); }
+    else if (t.dataset.up != null) { const k = +t.dataset.up; let j = k - 1; while (j >= 0 && W.rows[j].type !== "item") j--; if (j >= 0) { W.rows[j].desc = (W.rows[j].desc + " " + W.rows[k].desc).trim(); W.rows.splice(k, 1); paint(); } } });
+  $("#rvadd", ov).onclick = () => { W.rows.push({ type: "item", nro: "", desc: "", unid: "", cant: 1, pu: 0, total: 0, cap: "", flags: [] }); paint(); body.lastElementChild.querySelector("input.d").focus(); };
+  $("#rvcap", ov).onclick = () => { W.rows.push({ type: "cap", nro: "", desc: "" }); paint(); };
+  $("#rvcan", ov).onclick = closeModal;
+  $("#rvok", ov).onclick = () => {
+    const items = W.rows.filter(r => r.type === "item" && (r.desc || num(r.cant) * num(r.pu))); if (!items.length) { toast("No hay ítems para guardar."); return; }
+    let pid = opts.pid;
+    if (newProj) { const f = $("#pf", ov).elements; if (!f.nombre.value.trim()) { toast("Falta el nombre del proyecto."); f.nombre.focus(); return; }
+      const sum = sumItems(), monto = f.monto.value !== "" ? num(f.monto.value) : Math.round(sum * 100) / 100;
+      const p = { id: uid(), codigo: nextCode(), nombre: f.nombre.value.trim(), cliente: f.cliente.value, tel: f.tel.value, contacto: "", ubicacion: f.ubicacion.value, ciudad: "", resp: "", monto, ini_p: f.ini_p.value, ini_r: "", fin_c: f.fin_c.value, fin_r: "", estado: "Por iniciar", avance: 0, retPct: 0.05, utilPct: 0.20, ingPct: 0.15, notas: "Creado desde presupuesto" };
+      upsert("projects", p, true); pid = p.id; }
+    else if ($("#rvmode", ov) && $("#rvmode", ov).value === "replace") { S.items.filter(i => i.pid === pid).forEach(i => Sync.write("items", i, true)); S.items = S.items.filter(i => i.pid !== pid); }
+    let cap = ""; W.rows.forEach(r => { if (r.type === "cap") { cap = (r.nro + " " + r.desc).trim(); return; } if (!(r.desc || num(r.cant) * num(r.pu))) return;
+      const it = { id: uid(), pid, nro: r.nro || "", desc: r.desc, unid: r.unid, cant: num(r.cant), pu: num(r.pu), avance: 0, cap: r.cap || cap }; S.items.push(it); Sync.write("items", it, false); });
+    persist(); recompute(); closeModal(); if (newProj) { VIEW.tab = "proyectos"; VIEW.pid = pid; VIEW.sub = "items"; } render(); toast(items.length + " ítems guardados.");
+  };
+}
+/* ===== CORE_END ===== */
+
+/* ===== VIEWS_START ===== */
+/* ---- modo compartido (capacidades del visor: db, user, assets, downloads) ---- */
+const Sync = {
+  on: false, db: null, user: null, role: null, assets: null, downloads: null, unsubs: [], q: Promise.resolve(), isOwner: false, loaded: {},
+  async init() {
+    if (typeof claude === "undefined" || !claude.use) return;
+    const tryUse = async n => { try { return await claude.use(n); } catch (e) { return null; } };
+    this.downloads = await tryUse("downloads"); this.assets = await tryUse("assets"); this.user = await tryUse("user"); this.db = await tryUse("db");
+    try { this.isOwner = !!(this.user && ((this.user.isOwner && this.user.isOwner()) || (this.user.canEdit && this.user.canEdit()))); } catch (e) { }
+    if (this.db && localStorage.getItem(KEY + "_shared") === "1") this.enable(false); else render();
+  },
+  async enable(first) {
+    if (!this.db) return toast("La base compartida no está disponible en esta vista.");
+    if (first) {
+      try { localStorage.setItem(KEY + "_backup", JSON.stringify(S)); } catch (e) { }
+      if (S.projects.length && confirm("¿Subir los datos de este dispositivo a la base compartida?\n\nAceptar = se suben y todos los usuarios los verán.\nCancelar = se muestran solo los datos que ya estén en la base compartida (tus datos locales quedan en una copia de seguridad).")) await this.upload();
+    }
+    localStorage.setItem(KEY + "_shared", "1"); this.on = true; this.unsubs.forEach(u => u()); this.unsubs = [];
+    ARRS.forEach(k => { this.unsubs.push(this.db.collection(k).onSnapshot(snap => { S[k] = snap.docs.map(d => d.data()); this.loaded[k] = true; persist(); recompute(); render(); }, e => toast("Base compartida: " + (e && e.message || "error")))); });
+    this.unsubs.push(this.db.doc("config/main").onSnapshot(s => { if (s.exists) { S.config = Object.assign(S.config, s.data()); recompute(); render(); } }, () => { }));
+    this.unsubs.push(this.db.doc("config/roles").onSnapshot(async s => { S.roles = (s.exists && s.data().map) || {}; await this.resolveRole(); render(); }, () => { }));
+    await this.resolveRole(); render();
+  },
+  disable() { this.unsubs.forEach(u => u()); this.unsubs = []; this.on = false; localStorage.setItem(KEY + "_shared", "0"); try { const b = localStorage.getItem(KEY + "_backup"); if (b) { S = Object.assign(emptyState(), JSON.parse(b)); persist(); } } catch (e) { } recompute(); render(); },
+  async resolveRole() { try { if (this.isOwner) { this.role = "gerente"; return; } const id = this.user && this.user.id ? await this.user.id() : null; this.role = (id && S.roles && S.roles[id]) || "consulta"; } catch (e) { this.role = "consulta"; } },
+  clean: r => JSON.parse(JSON.stringify(r, (k, v) => v === undefined ? null : v)),
+  write(kind, rec, del) {
+    if (!this.on || !this.db) return; const path = kind + "/" + rec[kkey(kind)];
+    this.q = this.q.then(async () => { try { const go = () => del ? this.db.doc(path).delete() : this.db.doc(path).set(this.clean(rec)); try { await go(); } catch (e) { if (e && e.code === "resource_exhausted") { await new Promise(r => setTimeout(r, 2000)); await go(); } else throw e; } await new Promise(r => setTimeout(r, 60)); } catch (e) { toast(e && e.code === "not_granted" ? "Tu usuario no tiene permiso para escribir en la base compartida." : "No se pudo guardar en la nube: " + (e && e.message || "")); } });
+  },
+  writeConfig() { if (!this.on) return; this.q = this.q.then(() => this.db.doc("config/main").set(this.clean(S.config)).catch(e => toast("No se pudo guardar la configuración."))); },
+  async upload() { toast("Subiendo datos…", 4000); for (const k of ARRS) for (const r of S[k]) this.write(k, r, false); this.writeConfig(); await this.q; toast("Datos subidos."); },
+  saveRoles() { if (!this.on) return; this.q = this.q.then(() => this.db.doc("config/roles").set({ map: S.roles }).catch(e => toast("No se pudieron guardar los roles."))); }
+};
+
+/* ---- formularios por tipo ---- */
+const TODAY = () => iso(todayDn());
+const unitList = ["m", "m²", "m³", "ml", "kg", "pza", "glb", "día", "hr", "lt", "bolsa", "barra", "punto", "mes"];
+function formDef(kind, v) {
+  const pid = v.pid || VIEW.pid || (S.projects[0] && S.projects[0].id);
+  const F = {
+    projects: { title: v.id ? "Editar proyecto" : "Nuevo proyecto", wide: false, fields: [
+      { k: "codigo", l: "Código", half: 1, def: nextCode() }, { k: "nombre", l: "Nombre del proyecto", req: 1, half: 1 }, { k: "cliente", l: "Cliente", half: 1 }, { k: "tel", l: "Teléfono del cliente", half: 1 },
+      { k: "ubicacion", l: "Ubicación (dirección o coordenadas)" }, { k: "ciudad", l: "Ciudad / zona", half: 1 }, { k: "resp", l: "Responsable (ingeniero)", half: 1 },
+      { k: "monto", l: "Monto contratado original (Bs)", t: "money", req: 1, half: 1, help: v.id ? "" : "Si cargas ítems, puedes ajustarlo después." }, { k: "estado", l: "Estado", t: "select", opts: ESTADOS, half: 1, def: "Por iniciar" },
+      { k: "ini_p", l: "Inicio programado", t: "date", half: 1 }, { k: "fin_c", l: "Fin contractual", t: "date", half: 1 }, { k: "ini_r", l: "Inicio real", t: "date", half: 1 }, { k: "fin_r", l: "Fin real", t: "date", half: 1, help: "Solo al terminar: deja de recibir sueldos prorrateados." },
+      { k: "avance", l: "Avance físico (%)", t: "pct", half: 1, def: 0 }, { k: "retPct", l: "Retención de garantía (%)", t: "pct", half: 1, def: 0.05 },
+      { k: "utilPct", l: "Utilidad objetivo (%)", t: "pct", half: 1, def: 0.20 }, { k: "ingPct", l: "% de la utilidad para el ingeniero", t: "pct", half: 1, def: 0.15 }, { k: "notas", l: "Notas", t: "area" }] },
+    items: { title: v.id ? "Editar ítem" : "Nuevo ítem", again: !v.id, fields: [{ k: "nro", l: "Ítem Nº", half: 1, ph: "1.01" }, { k: "unid", l: "Unidad", half: 1, list: unitList }, { k: "desc", l: "Descripción", req: 1 }, { k: "cant", l: "Cantidad", t: "number", half: 1, def: 1 }, { k: "pu", l: "Precio unitario (Bs)", t: "money", half: 1 }, { k: "avance", l: "Avance físico del ítem (%)", t: "pct", def: 0 }] },
+    cambios: { title: "Cambio de monto", fields: [{ k: "pid", l: "Proyecto", t: "proj" }, { k: "fecha", l: "Fecha efectiva", t: "date", def: TODAY(), half: 1 }, { k: "tipo", l: "Tipo", t: "select", opts: ["Adicional", "Deductivo"], half: 1 }, { k: "monto", l: "Monto (Bs, siempre positivo)", t: "money", req: 1, half: 1 }, { k: "nro", l: "Nº orden de cambio", half: 1 }, { k: "desc", l: "Motivo" }] },
+    movs: { title: v.id ? "Editar gasto de obra" : "Gasto de obra", again: !v.id, fields: [{ k: "pid", l: "Proyecto", t: "proj" }, { k: "fecha", l: "Fecha", t: "date", def: TODAY(), half: 1 }, { k: "cat", l: "Categoría", t: "select", opts: CATS, half: 1 }, { k: "itemId", l: "Ítem del presupuesto (opcional)", t: "item" }, { k: "prov", l: "Proveedor / beneficiario" }, { k: "desc", l: "Descripción", req: 1 },
+      { k: "cant", l: "Cantidad", t: "number", half: 1 }, { k: "unid", l: "Unidad", half: 1, list: unitList }, { k: "monto", l: "Monto total (Bs)", t: "money", req: 1, half: 1 }, { k: "pago", l: "Estado de pago", t: "select", opts: ["Pagado", "Pendiente"], half: 1 }, { k: "forma", l: "Forma de pago", t: "select", opts: FORMAS, half: 1 }, { k: "factura", l: "¿Con factura?", t: "check", half: 1 }, { k: "fotos", l: "Foto de factura o avance", t: "photo" }, { k: "obs", l: "Observaciones" }] },
+    obreros: { title: v.id ? "Editar pago a obrero" : "Pago a obrero", again: !v.id, fields: [{ k: "pid", l: "Proyecto", t: "proj" }, { k: "fecha", l: "Fecha de pago", t: "date", def: TODAY() }, { k: "nombre", l: "Obrero", req: 1, half: 1, list: [...new Set(S.obreros.map(o => o.nombre))] }, { k: "oficio", l: "Oficio", t: "select", opts: OFICIOS, half: 1 }, { k: "dias", l: "Días trabajados", t: "number", half: 1 }, { k: "jornal", l: "Jornal diario (Bs)", t: "money", half: 1 }, { k: "bonos", l: "Bonos / horas extra", t: "money", half: 1 }, { k: "descuentos", l: "Descuentos / adelantos", t: "money", half: 1 }, { k: "pago", l: "Estado de pago", t: "select", opts: ["Pagado", "Pendiente"] }] },
+    gg: { title: v.id ? "Editar gasto general" : "Gasto general de la empresa", fields: [{ k: "fecha", l: "Fecha", t: "date", def: TODAY(), half: 1 }, { k: "cat", l: "Categoría", t: "select", opts: CATS_GG, half: 1 }, { k: "prov", l: "Proveedor" }, { k: "desc", l: "Descripción", req: 1 }, { k: "monto", l: "Monto (Bs)", t: "money", req: 1, half: 1 }, { k: "pago", l: "Estado de pago", t: "select", opts: ["Pagado", "Pendiente"], half: 1 }, { k: "factura", l: "¿Con factura?", t: "check" }] },
+    planillas: { title: v.id ? "Editar planilla" : "Planilla o anticipo emitido", fields: [{ k: "pid", l: "Proyecto", t: "proj" }, { k: "fecha", l: "Fecha de emisión", t: "date", def: TODAY(), half: 1 }, { k: "tipo", l: "Tipo", t: "select", opts: TIPOS_PLANILLA, half: 1 }, { k: "nro", l: "Nº de planilla (ej. PLA-1)", req: 1, half: 1 }, { k: "limite", l: "Fecha límite de cobro", t: "date", half: 1 }, { k: "monto", l: "Monto emitido (Bs)", t: "money", req: 1 }, { k: "desc", l: "Descripción" }], help: "" },
+    cobros: { title: v.id ? "Editar cobro" : "Cobro de cliente", fields: [{ k: "pid", l: "Proyecto", t: "proj" }, { k: "fecha", l: "Fecha", t: "date", def: TODAY(), half: 1 }, { k: "concepto", l: "Concepto", t: "select", opts: TIPOS_PLANILLA, half: 1 }, { k: "nro", l: "Nº de planilla (el mismo de Planillas)", half: 1, list: [...new Set(S.planillas.map(p => p.nro))] }, { k: "monto", l: "Monto cobrado (Bs)", t: "money", req: 1, half: 1, help: "Si hubo retención, cobras el neto." }, { k: "forma", l: "Forma de pago", t: "select", opts: FORMAS, half: 1 }, { k: "factura", l: "¿Con factura?", t: "check", half: 1 }] },
+    pagosUtil: { title: "Pago de utilidad al ingeniero", fields: [{ k: "pid", l: "Proyecto", t: "proj" }, { k: "fecha", l: "Fecha", t: "date", def: TODAY(), half: 1 }, { k: "concepto", l: "Concepto", t: "select", opts: CONC_UTIL, half: 1 }, { k: "monto", l: "Monto (Bs)", t: "money", req: 1 }] },
+    avance: { title: "Avance semanal (acumulado)", fields: [{ k: "pid", l: "Proyecto", t: "proj" }, { k: "semana", l: "Semana (cualquier día de la semana)", t: "date", def: TODAY() }, { k: "prog", l: "Avance programado acumulado (%)", t: "pct", half: 1 }, { k: "real", l: "Avance real acumulado (%)", t: "pct", half: 1 }] },
+    nomina: { title: "Sueldos de la semana", fields: [{ k: "semana", l: "Semana (cualquier día)", t: "date", def: TODAY() }, { k: "estado", l: "Estado", t: "select", opts: ["Pagado", "Pendiente"], half: 1 }, { k: "g", l: "Gerente (Bs)", t: "money", half: 1, def: S.config.sueldos.gerente }, { k: "c", l: "Contadora (Bs)", t: "money", half: 1, def: S.config.sueldos.contadora }, { k: "i", l: "Ingeniero (Bs)", t: "money", half: 1, def: S.config.sueldos.ingeniero }] }
+  }[kind];
+  return F;
+}
+function editRec(kind, id, defaults) {
+  if (!can(kind)) return toast("Tu rol (" + ROLES[myRole()] + ") no permite editar esto.");
+  const key = kkey(kind), cur = id ? S[kind].find(x => x[key] === id) : null; const v = Object.assign({}, defaults || {}, cur || {});
+  if (!cur && ["items"].includes(kind) && !v.pid) v.pid = VIEW.pid;
+  const d = formDef(kind, v);
+  const ov = openForm({ title: d.title, fields: d.fields, v, again: d.again, wide: d.wide,
+    onSave: o => {
+      if (kind === "nomina") { o.semana = iso(mondayOf(D(o.semana))); const prev = id && id !== o.semana ? id : null; if (prev) removeRec("nomina", prev); }
+      if (kind === "avance") o.semana = iso(mondayOf(D(o.semana)));
+      if (kind === "items" || kind === "movs" || kind === "obreros" || kind === "gg") { if (!o.pid && kind !== "gg") o.pid = pid0(v); }
+      if (kind === "projects" && !cur) { o.avance = o.avance === "" ? 0 : o.avance; }
+      upsert(kind, o); if (kind === "projects" && !cur) { VIEW.pid = o.id; VIEW.tab = "proyectos"; VIEW.sub = "resumen"; render(); }
+    },
+    again: d.again ? () => editRec(kind, null, { pid: v.pid, cat: v.cat, fecha: v.fecha }) : null,
+    onDelete: cur ? () => removeRec(kind, id) : null });
+  if (kind === "projects") { const u = $("[name=ubicacion]", ov); if (u) { const row = document.createElement("div"); row.className = "acts"; row.style.justifyContent = "flex-start"; row.innerHTML = '<button type="button" class="btn g s" id="gps">📍 Usar mi ubicación</button><a class="btn g s" id="map" target="_blank" rel="noopener" style="text-decoration:none">🗺 Ver en el mapa</a>'; u.parentNode.appendChild(row);
+    $("#gps", ov).onclick = () => { if (!navigator.geolocation) return toast("Este dispositivo no permite ubicación."); navigator.geolocation.getCurrentPosition(p => { u.value = (u.value ? u.value + " · " : "") + p.coords.latitude.toFixed(5) + "," + p.coords.longitude.toFixed(5); }, () => toast("No se pudo obtener la ubicación (permiso denegado)."), { timeout: 8000 }); };
+    $("#map", ov).onclick = () => { $("#map", ov).href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(u.value || ""); }; } }
+}
+const pid0 = v => v.pid || VIEW.pid || (S.projects[0] && S.projects[0].id);
+
+/* ---- piezas de pantalla ---- */
+const kpi = (l, v, s, c) => '<div class="kpi ' + (c || "") + '"><div class="l">' + l + '</div><div class="v">' + v + '</div><div class="s">' + (s || "") + "</div></div>";
+const chipS = s => '<span class="chip s-' + String(s).split(" ")[0] + '">' + s + "</span>";
+const money = (n, red) => '<span class="' + (red && n < 0 ? "neg" : "") + '">' + fmtBs(n) + "</span>";
+const bar = (v, c) => '<div class="bar ' + (c || "") + '"><i style="width:' + Math.max(0, Math.min(100, v * 100)).toFixed(0) + '%"></i></div>';
+const tbl = (head, rows, foot) => '<div class="tw"><table><thead><tr>' + head.map(h => "<th" + (h[0] === ">" ? ' class="n"' : "") + ">" + esc(h.replace(/^>/, "")) + "</th>").join("") + "</tr></thead><tbody>" + rows.join("") + (foot || "") + "</tbody></table></div>";
+const tr = (cells, attrs) => "<tr" + (attrs || "") + ">" + cells.map(c => (typeof c === "object" ? '<td class="n">' + c.n + "</td>" : "<td>" + c + "</td>")).join("") + "</tr>";
+const N = v => ({ n: v });
+const empty = t => '<div class="card mut" style="text-align:center">' + t + "</div>";
+const addBtn = (kind, label, extra) => can(kind) ? '<button class="btn o s" data-act="add" data-kind="' + kind + '"' + (extra || "") + ">+ " + label + "</button>" : "";
+
+function vPanel() {
+  const T = R.T, A = R.aux; if (!S.projects.length) return vWelcome();
+  let h = '<div class="grid g4">' + kpi("Monto vigente", fmtBs(T.vig), "Cambios: " + (T.camb > 0 ? "+" : "") + fmt(T.camb, 0)) + kpi("Costo acumulado", fmtBs(T.cos), pct(T.pcon) + " del vigente", "o") + kpi("Saldo presupuestario", money(T.sal, 1), "No es dinero en caja", "t") + kpi("% consumido", pct(T.pcon), "Avance físico: " + pct(T.avn), "o") +
+    kpi("Total cobrado", fmtBs(T.cob), pct(T.vig ? T.cob / T.vig : 0) + " del vigente") + kpi("Saldo de caja", money(A.saldoCaja, 1), "Cobrado − pagado", "t") + kpi("Por pagar", fmtBs(A.porPagar), "Compras, sueldos, gastos", "a") + kpi("Margen proyectado", money(T.mpy, 1), pct(T.mpc) + " estimado", "t") + "</div>";
+  h += '<div class="grid g4" style="margin-top:10px">' + kpi("Por cobrar", fmtBs(T.pcb), "Planillas netas", "") + kpi("Vencido por cobrar", fmtBs(T.ven), "Fecha límite pasada", T.ven > 0 ? "r" : "") + kpi("Retenciones", fmtBs(T.rtn), "Garantía por recuperar", "a") + kpi("Impuestos (est.)", fmtBs(R.imp.total), "IVA + IT · referencial", "a") + "</div>";
+  if (R.alerts.length) h += '<div class="card"><h2>Avisos</h2>' + R.alerts.map(a => '<div class="al ' + a.n + '">' + esc(a.t) + "</div>").join("") + "</div>";
+  h += '<h2 style="margin:16px 4px 0;font-size:15px">Proyectos</h2>' + R.proj.map(projCard).join("");
+  h += '<div class="card"><h2>Costo por proyecto y concepto</h2><div class="ch"><canvas id="ch1"></canvas></div></div><div class="grid g2"><div class="card"><h2>Avance físico vs. % de presupuesto consumido</h2><div class="ch"><canvas id="ch2"></canvas></div></div><div class="card"><h2>Gasto semanal (últimas 12 semanas)</h2><div class="ch"><canvas id="ch3"></canvas></div></div></div>';
+  h += '<div class="card"><h2>Cronograma de proyectos (16 semanas)</h2>' + gantt() + "</div>";
+  return h;
+}
+function vWelcome() {
+  return '<div class="card"><h2>¡Bienvenido!</h2><p>Esta app reemplaza la planilla de control: proyectos, ítems del presupuesto, gastos, cobranza, sueldos, utilidad y panel gerencial.</p><div class="acts" style="justify-content:flex-start"><button class="btn o" data-act="newProj">+ Crear mi primer proyecto</button><button class="btn g" data-act="sample">Ver con datos de ejemplo</button></div><p class="hint">Puedes crear el proyecto subiendo el presupuesto en PDF (la app lee los ítems) o a mano.</p></div>';
+}
+function projCard(x) {
+  const p = x.p; return '<div class="card pc" data-act="openProj" data-id="' + p.id + '"><div class="row"><div><h3>' + esc(p.nombre) + '</h3><div class="hint">' + esc(p.codigo) + " · " + esc(p.cliente || "sin cliente") + (p.ubicacion ? " · " + esc(p.ubicacion.slice(0, 40)) : "") + '</div></div><div style="text-align:right">' + chipS(x.sem) + '<div class="hint">' + esc(p.estado) + "</div></div></div>" +
+    '<div class="hint" style="margin-top:8px">Avance físico ' + pct(x.avn, 0) + "</div>" + bar(x.avn) + '<div class="hint">Presupuesto consumido ' + pct(x.pcon) + "</div>" + bar(x.pcon, "c") +
+    '<div class="mini"><div>Vigente<b>' + fmtBs(x.vig) + "</b></div><div>Costo<b>" + fmtBs(x.cos) + "</b></div><div>Saldo<b class=\"" + (x.sal < 0 ? "neg" : "") + '">' + fmtBs(x.sal) + '</b></div></div><div class="hint" style="margin-top:6px">' + esc(x.apl) + (x.ven > 0 ? ' · <span class="neg">vencido por cobrar ' + fmtBs(x.ven) + "</span>" : "") + "</div></div>";
+}
+function gantt() {
+  const w0 = Math.max(1, R.curWeek - 3), n = 16, cols = Array.from({ length: n }, (_, k) => w0 + k);
+  let h = '<div class="gantt" style="grid-template-columns:110px repeat(' + n + ',1fr)"><div></div>' + cols.map(w => '<div class="h" style="' + (w === R.curWeek ? "color:var(--orange);font-weight:800" : "") + '">' + w + "</div>").join("");
+  R.proj.forEach(x => { const p = x.p, ip = D(p.ini_p), fc = D(p.fin_c); h += '<div class="nm">' + esc(p.nombre) + "</div>" + cols.map(w => { const ws = R.start + 7 * (w - 1), we = ws + 6; const pl = ip != null && fc != null && ip <= we && fc >= ws, re = x.ief != null && D(p.ini_r) != null && D(p.ini_r) <= we && (x.fef != null ? x.fef : R.today) >= ws; return '<div class="c ' + (re ? (pl ? "r" : "x") : pl ? "p" : "") + '"></div>'; }).join(""); });
+  return h + '</div><div class="hint" style="margin-top:6px">Azul claro = programado · azul oscuro = real en plazo · naranja = real fuera de plazo · semana actual: ' + R.curWeek + "</div>";
+}
+
+function vProyectos() {
+  return '<div class="acts no-print" style="justify-content:flex-start;margin:4px 0">' + (can("projects") ? '<button class="btn o" data-act="newProj">+ Nuevo proyecto</button>' : "") + "</div>" + (S.projects.length ? R.proj.map(projCard).join("") : empty("Aún no hay proyectos."));
+}
+function newProjChooser() {
+  if (!can("projects")) return toast("Tu rol no permite crear proyectos.");
+  const o = modal('<h2>Nuevo proyecto</h2><div class="menu"><button data-nw="pdf"><span>📄</span>Desde presupuesto PDF</button><button data-nw="xls"><span>📊</span>Desde Excel / CSV</button><button data-nw="txt"><span>📋</span>Pegar texto del presupuesto</button><button data-nw="man"><span>✍️</span>Manual (ítems a mano)</button></div><p class="hint">Con PDF, Excel o texto la app identifica los ítems y te los muestra para revisar antes de guardar. Con «Manual» creas el proyecto y agregas los ítems uno por uno.</p>');
+  o.addEventListener("click", e => { const b = e.target.closest("[data-nw]"); if (!b) return; const m = b.dataset.nw; if (m === "man") { closeModal(); editRec("projects", null); } else importBudget(m, { newProject: true }); });
+}
+function pickFile(accept) { return new Promise(res => { const i = document.createElement("input"); i.type = "file"; i.accept = accept; i.onchange = () => res(i.files[0] || null); i.click(); }); }
+async function importBudget(mode, opts) {
+  try {
+    let parsed;
+    if (mode === "txt") { const o = modal('<h2>Pegar texto del presupuesto</h2><p class="hint">Copia las filas desde el PDF o Excel y pégalas aquí (una fila por línea: ítem, descripción, unidad, cantidad, precio unitario, total).</p><textarea id="pt" style="min-height:220px" placeholder="1.1 Excavación manual m3 45,50 95,00 4.322,50"></textarea><div class="acts"><span class="sp"></span><button class="btn g" id="c1">Cancelar</button><button class="btn o" id="c2">Leer ítems</button></div>'); $("#c1", o).onclick = closeModal; $("#c2", o).onclick = () => { const t = $("#pt", o).value; if (!t.trim()) return; const p = parseBudget(t.split(/\r?\n/)); if (!p.rows.some(r => r.type === "item")) return toast("No encontré ítems. Revisa el formato."); reviewBudget(p, opts); }; return; }
+    const file = await pickFile(mode === "pdf" ? "application/pdf,.pdf" : ".xlsx,.xls,.csv"); if (!file) return;
+    modal('<h2>Leyendo ' + esc(file.name) + '…</h2><p id="prg" class="hint">Un momento.</p>');
+    if (mode === "pdf") { const lines = await pdfToLines(file, (p, n) => { const e = $("#prg"); if (e) e.textContent = "Página " + p + " de " + n; }); parsed = parseBudget(lines); }
+    else parsed = await excelToBudget(file);
+    if (!parsed.rows.some(r => r.type === "item")) { modal('<h2>No encontré ítems</h2><p>El documento tiene texto pero no reconocí filas de presupuesto (ítem, descripción, unidad, cantidad, precio, total). Prueba con «Pegar texto», con un Excel, o crea el proyecto a mano.</p><div class="acts"><span class="sp"></span><button class="btn g" onclick="closeModal()">Cerrar</button></div>'); return; }
+    reviewBudget(parsed, opts);
+  } catch (e) {
+    const msg = e && e.scan ? "Este PDF parece escaneado (solo imagen, sin texto), así que no puedo leer los ítems. Opciones: subir el Excel del presupuesto, pegar el texto, o crear el proyecto a mano." : "No se pudo leer el archivo: " + esc(e && e.message || e);
+    modal("<h2>No se pudo leer el presupuesto</h2><p>" + msg + '</p><div class="acts"><span class="sp"></span><button class="btn g" onclick="closeModal()">Cerrar</button></div>');
+  }
+}
+
+function vProyecto(id) {
+  const x = R.byId[id]; if (!x) { VIEW.pid = null; return vProyectos(); } const p = x.p;
+  const tabs = [["resumen", "Resumen"], ["items", "Ítems"], ["gastos", "Gastos"], ["cobranza", "Cobranza"], ["utilidad", "Utilidad"], ["avance", "Avance"]];
+  let h = '<div class="card"><div class="row" style="display:flex;justify-content:space-between;gap:8px"><div><h2 style="font-size:18px;margin:0">' + esc(p.nombre) + '</h2><div class="hint">' + esc(p.codigo) + " · " + esc(p.estado) + '</div></div><div style="text-align:right">' + chipS(x.sem) + "<div>" + (can("projects") ? '<button class="btn g s no-print" data-act="edit" data-kind="projects" data-id="' + id + '" style="margin-top:6px">Editar</button>' : "") + "</div></div></div></div>";
+  h += '<div class="seg">' + tabs.map(t => '<button data-act="sub" data-s="' + t[0] + '" class="' + (VIEW.sub === t[0] ? "on" : "") + '">' + t[1] + "</button>").join("") + "</div>";
+  const S_ = { resumen: pResumen, items: pItems, gastos: pGastos, cobranza: pCobranza, utilidad: pUtilidad, avance: pAvance }[VIEW.sub] || pResumen; return h + S_(x);
+}
+function pResumen(x) {
+  const p = x.p;
+  return '<div class="card"><h2>Datos del proyecto</h2><table><tbody>' + [["Cliente", p.cliente], ["Teléfono", p.tel], ["Ubicación", p.ubicacion ? esc(p.ubicacion) + ' · <a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(p.ubicacion) + '">ver mapa</a>' : ""], ["Responsable", p.resp], ["Inicio programado", fmtDate(p.ini_p)], ["Inicio real", fmtDate(p.ini_r)], ["Fin contractual", fmtDate(p.fin_c)], ["Fin real", fmtDate(p.fin_r)], ["Plazo", x.apl], ["Retención de garantía", pct(num(p.retPct))], ["Notas", p.notas]]
+      .filter(r => r[1] !== "" && r[1] != null).map(r => "<tr><td class=\"mut\">" + r[0] + "</td><td>" + (r[0] === "Ubicación" ? r[1] : esc(r[1])) + "</td></tr>").join("") + "</tbody></table></div>" +
+    '<div class="grid g4">' + kpi("Monto vigente", fmtBs(x.vig), "Original " + fmt(x.monto, 0) + " · cambios " + fmt(x.camb, 0)) + kpi("Costo acumulado", fmtBs(x.cos), pct(x.pcon), "o") + kpi("Saldo", money(x.sal, 1), "", "t") + kpi("Margen proyectado", money(x.mpy, 1), "Costo final est. " + fmt(x.cpy, 0), "t") + "</div>" +
+    '<div class="card"><h2>Dónde se gastó</h2>' + tbl(["Concepto", ">Bs", ">%"], [["Materiales", x.mat], ["Mano de obra", x.mo], ["Sueldos prorrateados", x.sue], ["Gastos generales", x.ggs], ["Otros gastos de obra", x.otr]].map(r => tr([r[0], N(fmt(r[1])), N(x.cos ? pct(r[1] / x.cos) : "—")])), tr(["TOTAL", N(fmt(x.cos)), N("")], ' class="tot"')) + "</div>" +
+    '<div class="card"><h2>Cronograma</h2>' + timeline(x) + "</div>";
+}
+function timeline(x) {
+  const p = x.p, a = D(p.ini_p), b = D(p.fin_c); if (a == null || b == null || b <= a) return '<p class="mut">Define inicio programado y fin contractual.</p>';
+  const tot = b - a, pos = d => Math.max(0, Math.min(100, (d - a) / tot * 100)), ri = x.ief != null && D(p.ini_r) != null ? D(p.ini_r) : null;
+  return '<div style="position:relative;height:46px;background:var(--soft);border-radius:8px"><div style="position:absolute;left:0;right:0;top:4px;height:14px;background:#bfd7f2;border-radius:4px"></div>' + (ri != null ? '<div style="position:absolute;left:' + pos(ri) + "%;width:" + Math.max(1, pos(x.fef != null ? x.fef : R.today) - pos(ri)) + '%;top:24px;height:14px;background:var(--navy);border-radius:4px"></div>' : "") + '<div style="position:absolute;left:' + pos(R.today) + '%;top:0;bottom:0;width:2px;background:var(--orange)"></div></div><div class="hint" style="display:flex;justify-content:space-between"><span>' + fmtDate(p.ini_p) + "</span><span>hoy</span><span>" + fmtDate(p.fin_c) + "</span></div>";
+}
+function pItems(x) {
+  const rows = []; let cap = null;
+  x.items.forEach(r => { const i = r.i; if (i.cap && i.cap !== cap) { cap = i.cap; rows.push('<tr class="cap"><td colspan="10">' + esc(cap) + "</td></tr>"); }
+    rows.push(tr([esc(i.nro), esc(i.desc), esc(i.unid), N(fmt(i.cant, 2)), N(fmt(i.pu)), N(fmt(r.pres)), N(fmt(r.gast)), N(r.pres ? pct(r.lp, 0) : "—"), '<span class="' + (r.alerta.startsWith("⚠") ? "neg" : "pos") + '">' + r.alerta + "</span>", can("items") ? '<button class="btn g s no-print" data-act="edit" data-kind="items" data-id="' + i.id + '">✎</button>' : ""])); });
+  const diff = x.presItems - x.vig;
+  return '<div class="card"><div class="acts no-print" style="justify-content:flex-start;margin:0 0 8px">' + addBtn("items", "Ítem") + (can("items") ? '<button class="btn g s" data-act="imp" data-m="pdf">📄 Importar PDF</button><button class="btn g s" data-act="imp" data-m="xls">📊 Excel</button><button class="btn g s" data-act="imp" data-m="txt">📋 Pegar</button>' : "") + "</div>" +
+    (x.items.length ? tbl(["Nº", "Descripción", "Unid.", ">Cant.", ">P. unit.", ">Presupuesto", ">Gastado", ">%", "Alerta", ""], rows, tr(["", "TOTAL", "", "", "", N(fmt(x.presItems)), N(fmt(x.items.reduce((a, r) => a + r.gast, 0))), "", Math.abs(diff) < 1 ? '<span class="pos">✔ cuadra con el monto vigente</span>' : '<span class="neg">⚠ difiere del monto vigente en ' + fmt(diff) + "</span>", ""], ' class="tot"')) : '<p class="mut">Este proyecto aún no tiene ítems. Agrégalos a mano o impórtalos desde el presupuesto.</p>') + '<p class="hint">El «Gastado» sale de los gastos de obra que asignes a cada ítem.</p></div>';
+}
+function pGastos(x) {
+  const id = x.p.id, rows = S.movs.filter(m => m.pid === id).map(m => ({ f: m.fecha, k: "movs", id: m.id, t: m.cat, d: m.desc, m: num(m.monto), pg: m.pago, ph: (m.fotos || []).length })).concat(S.obreros.filter(o => o.pid === id).map(o => ({ f: o.fecha, k: "obreros", id: o.id, t: "Obrero · " + o.oficio, d: o.nombre + " (" + o.dias + " d)", m: num(o.dias) * num(o.jornal) + num(o.bonos) - num(o.descuentos), pg: o.pago, ph: 0 }))).sort((a, b) => (b.f || "").localeCompare(a.f || ""));
+  return '<div class="card"><div class="acts no-print" style="justify-content:flex-start;margin:0 0 8px">' + addBtn("movs", "Gasto de obra") + addBtn("obreros", "Pago a obrero") + "</div>" + (rows.length ? tbl(["Fecha", "Tipo", "Descripción", ">Monto", "Pago", ""], rows.map(r => tr([fmtDate(r.f), esc(r.t), esc(r.d) + (r.ph ? " 📷" : ""), N(fmt(r.m)), r.pg === "Pendiente" ? '<span class="chip warn">Pendiente</span>' : "Pagado", can(r.k) ? '<button class="btn g s no-print" data-act="edit" data-kind="' + r.k + '" data-id="' + r.id + '">✎</button>' : ""])), tr(["", "", "TOTAL", N(fmt(rows.reduce((a, r) => a + r.m, 0))), "", ""], ' class="tot"')) : '<p class="mut">Sin gastos registrados.</p>') + "</div>";
+}
+function pCobranza(x) {
+  const id = x.p.id, pr = R.planRows.filter(r => r.pl.pid === id), cb = S.cobros.filter(c => c.pid === id).sort((a, b) => (b.fecha || "").localeCompare(a.fecha || ""));
+  return '<div class="grid g4">' + kpi("Emitido", fmtBs(x.emi), "En planillas") + kpi("Cobrado", fmtBs(x.cob)) + kpi("Por cobrar", fmtBs(x.pcb), "", "a") + kpi("Vencido", fmtBs(x.ven), "", x.ven > 0 ? "r" : "") + '</div><div class="card"><h2>Planillas</h2><div class="acts no-print" style="justify-content:flex-start;margin:0 0 8px">' + addBtn("planillas", "Planilla") + addBtn("cobros", "Cobro") + "</div>" +
+    (pr.length ? tbl(["Nº", "Tipo", ">Monto", ">Retención", ">Cobrado", ">Saldo", "Estado", ""], pr.map(r => tr([esc(r.pl.nro), esc(r.pl.tipo), N(fmt(num(r.pl.monto))), N(fmt(r.ret)), N(fmt(r.cob)), N(fmt(r.saldo)), '<span class="chip ' + (r.estado === "Cobrada" ? "ok" : r.venc > 0 ? "bad" : "warn") + '">' + (r.venc > 0 ? "Vencida " + r.atraso + " d" : r.estado) + "</span>", can("planillas") ? '<button class="btn g s no-print" data-act="edit" data-kind="planillas" data-id="' + r.pl.id + '">✎</button>' : ""]))) : '<p class="mut">Sin planillas.</p>') + "</div>" +
+    '<div class="card"><h2>Cobros</h2>' + (cb.length ? tbl(["Fecha", "Concepto", "Nº", ">Monto", ""], cb.map(c => tr([fmtDate(c.fecha), esc(c.concepto), esc(c.nro), N(fmt(num(c.monto))), can("cobros") ? '<button class="btn g s no-print" data-act="edit" data-kind="cobros" data-id="' + c.id + '">✎</button>' : ""]))) : '<p class="mut">Sin cobros.</p>') + "</div>";
+}
+function pUtilidad(x) {
+  const u = x.u, id = x.p.id, pg = S.pagosUtil.filter(c => c.pid === id);
+  return '<div class="grid g4">' + kpi("Utilidad objetivo", fmtBs(u.obj), pct(num(x.p.utilPct)) + " del vigente") + kpi("Utilidad del ingeniero", fmtBs(u.ing), pct(num(x.p.ingPct)) + " de la utilidad", "o") + kpi("Devengada según avance", fmtBs(u.dev), pct(u.av, 0) + " de avance", "t") + kpi("Saldo por pagar", fmtBs(u.saldo), "Pagada: " + fmt(u.pag, 0), "a") + "</div>" +
+    '<div class="card"><div class="al ' + (u.holg >= 0 ? "i" : "r") + '">' + esc(u.sit) + '</div><p class="hint">Utilidad neta del propietario: ' + fmtBs(u.neta) + " · Exigible según avance: " + fmtBs(u.exig) + ' · Margen proyectado: ' + fmtBs(x.mpy) + '</p><div class="acts no-print" style="justify-content:flex-start">' + addBtn("pagosUtil", "Pago de utilidad") + "</div>" +
+    (pg.length ? tbl(["Fecha", "Concepto", ">Monto", ""], pg.map(c => tr([fmtDate(c.fecha), esc(c.concepto), N(fmt(num(c.monto))), can("pagosUtil") ? '<button class="btn g s no-print" data-act="edit" data-kind="pagosUtil" data-id="' + c.id + '">✎</button>' : ""]))) : "") + "</div>";
+}
+function pAvance(x) {
+  const c = R.curve(x.p.id), id = x.p.id, rows = S.avance.filter(a => a.pid === id).sort((a, b) => a.semana.localeCompare(b.semana));
+  return '<div class="card"><h2>Curva S: programado vs. real vs. financiero</h2><div class="ch"><canvas id="chS"></canvas></div><p class="hint">Financiero = gasto acumulado ÷ monto vigente. Si va por encima del avance real, se gasta más rápido de lo que avanza la obra.</p></div><div class="card"><div class="acts no-print" style="justify-content:flex-start;margin:0 0 8px">' + addBtn("avance", "Avance de la semana", ' data-pid="' + id + '"') + "</div>" +
+    (rows.length ? tbl(["Semana", ">Programado", ">Real", ""], rows.map(a => tr([fmtDate(a.semana) + " (S" + R.weekIdx(D(a.semana)) + ")", N(a.prog === "" || a.prog == null ? "—" : pct(num(a.prog), 0)), N(a.real === "" || a.real == null ? "—" : pct(num(a.real), 0)), can("avance") ? '<button class="btn g s no-print" data-act="edit" data-kind="avance" data-id="' + a.id + '">✎</button>' : ""]))) : '<p class="mut">Registra el avance programado y real acumulado de cada semana.</p>') + "</div>";
+}
+
+function vCobranza() {
+  const T = R.T; return '<div class="grid g4">' + kpi("Emitido", fmtBs(T.emi), "Planillas") + kpi("Cobrado", fmtBs(T.cob), "", "t") + kpi("Por cobrar", fmtBs(T.pcb), "Neto de retenciones", "a") + kpi("Vencido", fmtBs(T.ven), "", T.ven > 0 ? "r" : "") + '</div><div class="card"><div class="acts no-print" style="justify-content:flex-start;margin:0 0 8px">' + addBtn("planillas", "Planilla") + addBtn("cobros", "Cobro") + "</div>" +
+    (R.planRows.length ? tbl(["Proyecto", "Nº", "Tipo", ">Monto", ">Retención", ">Cobrado", ">Saldo", "Límite", "Estado", ""], R.planRows.map(r => tr([esc(projName(r.pl.pid)), esc(r.pl.nro), esc(r.pl.tipo), N(fmt(num(r.pl.monto))), N(fmt(r.ret)), N(fmt(r.cob)), N(fmt(r.saldo)), fmtDate(r.pl.limite), '<span class="chip ' + (r.estado === "Cobrada" ? "ok" : r.venc > 0 ? "bad" : "warn") + '">' + (r.venc > 0 ? "Vencida " + r.atraso + " d" : r.estado) + "</span>", can("planillas") ? '<button class="btn g s no-print" data-act="edit" data-kind="planillas" data-id="' + r.pl.id + '">✎</button>' : ""]))) : '<p class="mut">Aún no hay planillas.</p>') + "</div>" +
+    '<div class="card"><h2>Cobros recibidos</h2>' + (S.cobros.length ? tbl(["Fecha", "Proyecto", "Concepto", "Nº", ">Monto", ""], S.cobros.slice().sort((a, b) => (b.fecha || "").localeCompare(a.fecha || "")).map(c => tr([fmtDate(c.fecha), esc(projName(c.pid)), esc(c.concepto), esc(c.nro), N(fmt(num(c.monto))), can("cobros") ? '<button class="btn g s no-print" data-act="edit" data-kind="cobros" data-id="' + c.id + '">✎</button>' : ""]))) : '<p class="mut">Sin cobros.</p>') + "</div>";
+}
+function listPage(kind, title, cols, rowsFn, addLabel) {
+  const rows = rowsFn(); return '<div class="card"><h2>' + title + '</h2><div class="acts no-print" style="justify-content:flex-start;margin:0 0 8px">' + addBtn(kind, addLabel) + "</div>" + (rows.length ? tbl(cols.concat([""]), rows) : '<p class="mut">Sin registros.</p>') + "</div>";
+}
+const editBtn = (kind, id) => can(kind) ? '<button class="btn g s no-print" data-act="edit" data-kind="' + kind + '" data-id="' + id + '">✎</button>' : "";
+function vMas() {
+  const pg = VIEW.page;
+  if (!pg) return '<div class="menu">' + [["informe", "📑", "Informe semanal"], ["nomina", "👷", "Sueldos (nómina)"], ["gg", "🏢", "Gastos generales"], ["obreros", "🧱", "Pagos a obreros"], ["cambios", "🔁", "Cambios de monto"], ["impuestos", "🧾", "Impuestos (estimación)"], ["config", "⚙️", "Configuración"], ["datos", "💾", "Datos y copias"], ["ayuda", "❓", "Ayuda"]].map(m => '<button data-act="page" data-p="' + m[0] + '"><span>' + m[1] + "</span>" + m[2] + "</button>").join("") + "</div>";
+  const back = '<div class="acts no-print" style="justify-content:flex-start;margin:0"><button class="btn g s" data-act="page" data-p="">← Más</button></div>';
+  if (pg === "informe") return back + vInforme();
+  if (pg === "nomina") return back + vNomina();
+  if (pg === "gg") return back + listPage("gg", "Gastos generales de la empresa", ["Fecha", "Categoría", "Descripción", ">Monto", "Pago"], () => S.gg.slice().sort((a, b) => (b.fecha || "").localeCompare(a.fecha || "")).map(g => tr([fmtDate(g.fecha), esc(g.cat), esc(g.desc), N(fmt(num(g.monto))), g.pago === "Pendiente" ? '<span class="chip warn">Pendiente</span>' : "Pagado", editBtn("gg", g.id)])), "Gasto general") + '<p class="hint">' + (S.config.prorratearGG ? "Se reparten entre los proyectos activos cada semana." : "Se tratan como costo de la empresa (no se asignan a proyectos).") + "</p>";
+  if (pg === "obreros") return back + listPage("obreros", "Pagos a obreros (detalle)", ["Fecha", "Proyecto", "Obrero", "Oficio", ">Días", ">Total", "Pago"], () => S.obreros.slice().sort((a, b) => (b.fecha || "").localeCompare(a.fecha || "")).map(o => tr([fmtDate(o.fecha), esc(projName(o.pid)), esc(o.nombre), esc(o.oficio), N(fmt(num(o.dias), 1)), N(fmt(num(o.dias) * num(o.jornal) + num(o.bonos) - num(o.descuentos))), o.pago === "Pendiente" ? '<span class="chip warn">Pendiente</span>' : "Pagado", editBtn("obreros", o.id)])), "Pago a obrero") + '<p class="hint">Si usas este detalle, no registres el mismo pago como gasto de «Mano de obra».</p>';
+  if (pg === "cambios") return back + listPage("cambios", "Cambios de monto (adicionales y deductivos)", ["Fecha", "Proyecto", "Tipo", "Nº", ">Monto"], () => S.cambios.slice().sort((a, b) => (b.fecha || "").localeCompare(a.fecha || "")).map(c => tr([fmtDate(c.fecha), esc(projName(c.pid)), esc(c.tipo), esc(c.nro), N((c.tipo === "Deductivo" ? "−" : "+") + fmt(Math.abs(num(c.monto)))), editBtn("cambios", c.id)])), "Cambio de monto");
+  if (pg === "impuestos") { const i = R.imp; return back + '<div class="card"><h2>Impuestos: estimación referencial</h2><p class="hint">Base caja; supone que los montos «con factura» ya incluyen IVA. No incluye IUE. Confirma con tu contadora.</p>' + tbl(["Concepto", ">Bs"], [["Cobrado con factura", i.cobFact], ["IVA débito", i.ivaD], ["Compras con factura (obra y gastos generales)", i.compFact], ["IVA crédito", i.ivaC], ["IVA a pagar (negativo = a favor)", i.ivaPagar], ["IT estimado", i.it], ["TOTAL estimado (IVA + IT)", i.total]].map(r => tr([r[0], N(fmt(r[1]))]))) + "</div>"; }
+  if (pg === "config") return back + vConfig();
+  if (pg === "datos") return back + vDatos();
+  if (pg === "ayuda") return back + vAyuda();
+  return "";
+}
+function vNomina() {
+  const wk = R.curWeek, rows = []; const byW = {}; S.nomina.forEach(n => byW[R.weekIdx(D(n.semana))] = n);
+  for (let w = wk + 1; w >= 1 && w >= wk - 30; w--) { const n = byW[w], s = R.start + 7 * (w - 1), tot = n ? num(n.g != null && n.g !== "" ? n.g : S.config.sueldos.gerente) + num(n.c != null && n.c !== "" ? n.c : S.config.sueldos.contadora) + num(n.i != null && n.i !== "" ? n.i : S.config.sueldos.ingeniero) : 0;
+    rows.push(tr(["S" + w, fmtDate(iso(s)) + " – " + fmtDate(iso(s + 6)), N(n ? fmt(tot) : "—"), n ? '<span class="chip ' + (n.estado === "Pagado" ? "ok" : "warn") + '">' + n.estado + "</span>" : '<span class="chip">Sin marcar</span>', can("nomina") ? '<button class="btn g s no-print" data-act="nom" data-w="' + iso(s) + '">' + (n ? "Editar" : "Marcar") + "</button>" : ""])); }
+  return '<div class="card"><h2>Sueldos semanales</h2><p class="hint">Gerente, contadora e ingeniero: ' + fmtBs(S.config.sueldos.gerente + S.config.sueldos.contadora + S.config.sueldos.ingeniero) + ' por semana. Al marcar una semana, el costo se reparte entre los proyectos activos según su monto.</p>' + tbl(["Sem.", "Periodo", ">Total", "Estado", ""], rows) + "</div>";
+}
+function vInforme() {
+  const w = VIEW.week != null ? VIEW.week : Math.max(1, R.curWeek - 1), r = R.wkTot[w] || { mat: 0, mo: 0, otr: 0, sue: 0, gg: 0, cob: 0 }, s = R.start + 7 * (w - 1);
+  const cum = k => { let a = 0; for (let i = 1; i <= w; i++) a += (R.wkTot[i] || {})[k] || 0; return a; }; const gt = r.mat + r.mo + r.otr + r.sue + r.gg, ga = cum("mat") + cum("mo") + cum("otr") + cum("sue") + cum("gg");
+  const pw = x => x.wcost[w] || 0;
+  return '<div class="card"><div class="row" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><h2 style="margin:0">Informe semanal · semana ' + w + '</h2><span class="no-print"><input type="number" id="wkin" value="' + w + '" min="1" style="width:70px;display:inline-block"> <button class="btn g s" data-act="wk">Ver</button></span></div><div class="hint">' + fmtDate(iso(s)) + " al " + fmtDate(iso(s + 6)) + " · " + esc(S.config.empresa) + '</div><div class="acts no-print" style="justify-content:flex-start"><button class="btn o s" data-act="pdfReport">⬇ Descargar PDF</button><button class="btn g s" data-act="print">🖨 Imprimir</button></div></div>' +
+    '<div class="card"><h2>1. Resumen de la semana</h2>' + tbl(["Concepto", ">Semana", ">Acumulado"], [["Materiales", r.mat, cum("mat")], ["Mano de obra", r.mo, cum("mo")], ["Otros gastos de obra", r.otr, cum("otr")], ["Sueldos", r.sue, cum("sue")], ["Gastos generales", r.gg, cum("gg")]].map(a => tr([a[0], N(fmt(a[1])), N(fmt(a[2]))])), tr(["GASTO TOTAL", N(fmt(gt)), N(fmt(ga))], ' class="tot"') + tr(["Cobrado", N(fmt(r.cob)), N(fmt(cum("cob")))]) + tr(["Neto (cobrado − gasto)", N(fmt(r.cob - gt)), N(fmt(cum("cob") - ga))], ' class="tot"')) + "</div>" +
+    '<div class="card"><h2>2. Proyectos</h2>' + tbl(["Proyecto", "Estado", ">Avance", ">Gasto semana", ">Costo acum.", ">% consumido", ">Saldo", "Semáforo"], R.proj.map(x => tr([esc(x.p.nombre), esc(x.p.estado), N(pct(x.avn, 0)), N(fmt(pw(x))), N(fmt(x.cos)), N(pct(x.pcon)), N(fmt(x.sal)), chipS(x.sem)]))) + "</div>" +
+    '<div class="card"><h2>3. Dinero por pagar y por cobrar (a hoy)</h2>' + tbl(["Concepto", ">Bs"], [["Por pagar", R.aux.porPagar], ["Por cobrar de planillas (neto)", R.T.pcb], ["Vencido por cobrar", R.T.ven], ["Retenciones de garantía", R.T.rtn], ["SALDO DE CAJA (cobrado − pagado)", R.aux.saldoCaja], ["Utilidad del ingeniero devengada", R.T.uDev], ["Utilidad del ingeniero por pagar", R.T.uIng - R.T.uPag]].map(a => tr([a[0], N(fmt(a[1]))]))) + '</div><div class="card"><h2>4. Alertas</h2>' + (R.alerts.length ? R.alerts.map(a => '<div class="al ' + a.n + '">' + esc(a.t) + "</div>").join("") : '<div class="al i">✔ Sin alertas relevantes.</div>') + "</div>";
+}
+function reportPDF() {
+  const J = window.jspdf && window.jspdf.jsPDF; if (!J) { toast("No cargó el generador de PDF; usa «Imprimir»."); return; }
+  const w = VIEW.week != null ? VIEW.week : Math.max(1, R.curWeek - 1), r = R.wkTot[w] || { mat: 0, mo: 0, otr: 0, sue: 0, gg: 0, cob: 0 }, s = R.start + 7 * (w - 1);
+  const d = new J({ unit: "pt", format: "a4" }); let y = 40; const L = 40;
+  d.setFillColor(18, 42, 80); d.rect(0, 0, 595, 56, "F"); d.setTextColor(255); d.setFontSize(15); d.text(S.config.empresa, L, 26); d.setFontSize(10); d.text("INFORME SEMANAL · semana " + w + " · " + fmtDate(iso(s)) + " al " + fmtDate(iso(s + 6)), L, 44); d.setTextColor(0); y = 78;
+  const at = (head, body, opt) => { d.autoTable(Object.assign({ startY: y, head: [head], body, margin: { left: L, right: L }, styles: { fontSize: 8.5, cellPadding: 3 }, headStyles: { fillColor: [18, 42, 80] }, theme: "grid" }, opt || {})); y = d.lastAutoTable.finalY + 14; };
+  const gt = r.mat + r.mo + r.otr + r.sue + r.gg; d.setFontSize(11); d.text("1. Resumen de la semana", L, y); y += 6;
+  at(["Concepto", "Semana (Bs)"], [["Materiales", fmt(r.mat)], ["Mano de obra", fmt(r.mo)], ["Otros gastos de obra", fmt(r.otr)], ["Sueldos", fmt(r.sue)], ["Gastos generales", fmt(r.gg)], ["GASTO TOTAL", fmt(gt)], ["Cobrado", fmt(r.cob)], ["Neto", fmt(r.cob - gt)]]);
+  d.text("2. Proyectos", L, y); y += 6; at(["Proyecto", "Estado", "Avance", "Gasto sem.", "Costo acum.", "% cons.", "Saldo", "Semáforo"], R.proj.map(x => [x.p.nombre, x.p.estado, pct(x.avn, 0), fmt(x.wcost[w] || 0), fmt(x.cos), pct(x.pcon), fmt(x.sal), x.sem]));
+  d.text("3. Dinero por pagar y por cobrar", L, y); y += 6; at(["Concepto", "Bs"], [["Por pagar", fmt(R.aux.porPagar)], ["Por cobrar (neto)", fmt(R.T.pcb)], ["Vencido por cobrar", fmt(R.T.ven)], ["Retenciones de garantía", fmt(R.T.rtn)], ["Saldo de caja", fmt(R.aux.saldoCaja)]]);
+  d.text("4. Alertas", L, y); y += 14; d.setFontSize(9); (R.alerts.length ? R.alerts.map(a => a.t) : ["Sin alertas relevantes."]).forEach(t => { const ls = d.splitTextToSize("• " + t, 515); d.text(ls, L, y); y += ls.length * 11 + 2; });
+  return saveFile("Informe_semana_" + w + ".pdf", d.output("blob"));
+}
+function vConfig() {
+  const c = S.config; return '<div class="card"><h2>Configuración</h2><form id="cf">' + [
+    { k: "empresa", l: "Nombre de la empresa" }, { k: "inicio", l: "Inicio del control (se ajusta al lunes)", t: "date", half: 1 }, { k: "diasAlerta", l: "Días de alerta por vencimiento", t: "number", half: 1 }, { k: "tol", l: "Tolerancia de desviación (%)", t: "pct", half: 1 }, { k: "umbral", l: "Umbral de consumo (%)", t: "pct", half: 1 },
+    { k: "avMin", l: "Avance mínimo para proyectar (%)", t: "pct", half: 1 }, { k: "prorratearGG", l: "Repartir gastos generales entre proyectos", t: "check", half: 1 }, { k: "iva", l: "IVA (%)", t: "pct", half: 1 }, { k: "it", l: "IT (%)", t: "pct", half: 1 },
+    { k: "sg", l: "Sueldo semanal gerente (Bs)", t: "money", half: 1 }, { k: "sc", l: "Sueldo semanal contadora (Bs)", t: "money", half: 1 }, { k: "si", l: "Sueldo semanal ingeniero (Bs)", t: "money", half: 1 }].map(f => { const v = Object.assign({}, c, { sg: c.sueldos.gerente, sc: c.sueldos.contadora, si: c.sueldos.ingeniero }); return fieldHtml(f, v); }).join("").replace(/<div class="f"/g, '<div class="f"') +
+    (Sync.on ? "" : fieldHtml({ k: "rolLocal", l: "Mi rol en este dispositivo", t: "select", opts: Object.entries(ROLES).map(([v, l]) => ({ v, l })) }, c)) + '<div class="acts"><span class="sp"></span><button class="btn o" type="submit">Guardar configuración</button></div></form></div>' + (Sync.on ? vRoles() : "");
+}
+function vRoles() {
+  if (!Sync.isOwner) return '<div class="card"><h2>Usuarios y roles</h2><p class="hint">Tu rol: <b>' + ROLES[myRole()] + "</b>. Solo el propietario asigna roles.</p></div>";
+  return '<div class="card"><h2>Usuarios y roles</h2><p class="hint">Asigna el rol de cada persona con acceso a esta app. (Los roles limitan lo que cada uno puede editar en pantalla.)</p><div id="rl">' + Object.entries(S.roles || {}).map(([id, r]) => '<div class="row" style="display:flex;gap:8px;margin:6px 0;align-items:center"><span id="u_' + esc(id) + '" style="flex:1">' + esc(id.slice(0, 8)) + '</span><select data-role="' + esc(id) + '">' + Object.entries(ROLES).map(([v, l]) => '<option value="' + v + '"' + (v === r ? " selected" : "") + ">" + l + "</option>").join("") + "</select></div>").join("") + '</div><div class="f"><label>Agregar persona (buscar por nombre)</label><input id="usq" placeholder="Nombre o correo"></div><div id="ush"></div></div>';
+}
+function vDatos() {
+  return '<div class="card"><h2>Datos y copias de seguridad</h2><div class="menu"><button data-act="xlsx"><span>⬇️</span>Exportar a Excel</button><button data-act="ximp"><span>⬆️</span>Importar Excel de la app</button><button data-act="jsonx"><span>🗂</span>Copia JSON</button><button data-act="jsoni"><span>♻️</span>Restaurar copia JSON</button></div></div>' +
+    '<div class="card"><h2>Modo compartido (beta)</h2><p class="hint">Permite que varias personas con acceso a esta app vean y registren los mismos datos, con roles y fotos en la nube. Estado: <b>' + (Sync.on ? "activado" : Sync.db ? "disponible" : "no disponible en esta vista") + "</b>.</p>" + (Sync.db ? (Sync.on ? '<button class="btn g" data-act="syncoff">Volver a modo local</button> <button class="btn g" data-act="syncup">Subir mis datos locales</button>' : '<button class="btn o" data-act="syncon">Activar modo compartido</button>') : "") + "</div>" +
+    '<div class="card"><h2>Datos de ejemplo y borrado</h2><div class="acts" style="justify-content:flex-start"><button class="btn g" data-act="sample">Cargar datos de ejemplo</button><button class="btn r" data-act="wipe">Borrar todos los datos</button></div><p class="hint">Antes de cargar el ejemplo o borrar, la app guarda una copia en este dispositivo.</p></div>';
+}
+function vAyuda() {
+  return '<div class="card"><h2>Cómo usar la app</h2><ol><li><b>Crear un proyecto:</b> Proyectos → «Nuevo proyecto» → desde PDF, Excel, texto o manual.</li><li><b>Revisar ítems:</b> la app muestra lo que leyó; corrige filas con ⚠ y guarda.</li><li><b>Registrar:</b> el botón naranja «+» abre los formularios (gasto, obreros, gasto general, planilla, cobro, cambio de monto, sueldos, avance).</li><li><b>Cobranza:</b> emite la planilla y, al cobrar, usa el mismo Nº de planilla.</li><li><b>Panel:</b> semáforos, saldos y avisos. <b>Más → Informe semanal</b> para el PDF de los lunes.</li><li><b>Exportar:</b> Más → Datos y copias.</li></ol><p class="hint">Impuestos: estimación referencial. Presupuesto ≠ caja: mira siempre el saldo de caja. La lectura de PDF funciona con PDFs que tienen texto; los escaneados (imagen) no se pueden leer.</p></div>';
+}
+
+/* ---- registro rápido ---- */
+function quickMenu() {
+  const items = [["movs", "🧰", "Gasto de obra"], ["obreros", "🧱", "Pago a obrero"], ["gg", "🏢", "Gasto general"], ["planillas", "📄", "Planilla emitida"], ["cobros", "💵", "Cobro"], ["cambios", "🔁", "Cambio de monto"], ["nomina", "👷", "Sueldos semana"], ["avance", "📈", "Avance"], ["pagosUtil", "⭐", "Pago de utilidad"]];
+  const o = modal('<h2>Registrar</h2><div class="menu">' + items.map(i => '<button data-q="' + i[0] + '"' + (can(i[0]) ? "" : " disabled style=\"opacity:.4\"") + "><span>" + i[1] + "</span>" + i[2] + "</button>").join("") + "</div>");
+  o.addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (!b || b.disabled) return; closeModal(); if (!S.projects.length && !["gg", "nomina"].includes(b.dataset.q)) return toast("Primero crea un proyecto."); editRec(b.dataset.q, null); });
+}
+
+/* ---- gráficos ---- */
+let CH = [];
+function drawCharts() {
+  CH.forEach(c => { try { c.destroy(); } catch (e) { } }); CH = []; if (typeof Chart === "undefined") return;
+  const dark = matchMedia("(prefers-color-scheme: dark)").matches, tc = dark ? "#cfd6e8" : "#445", gc = dark ? "#2a3452" : "#e3e7f0"; Chart.defaults.color = tc;
+  const mk = (id, cfg) => { const el = document.getElementById(id); if (!el) return; cfg.options = Object.assign({ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: "bottom", labels: { boxWidth: 10 } } }, scales: { x: { stacked: cfg.stacked, grid: { color: gc } }, y: { stacked: cfg.stacked, grid: { color: gc }, ticks: { callback: v => cfg.pct ? v + "%" : fmt(v, 0) } } } }, cfg.options || {}); CH.push(new Chart(el, cfg)); };
+  const pal = ["#122A50", "#EE6225", "#2A9D8F", "#E9C46A", "#8D99AE"], names = R.proj.map(x => x.p.nombre);
+  mk("ch1", { type: "bar", stacked: true, data: { labels: names, datasets: [["Materiales", "mat"], ["Mano de obra", "mo"], ["Sueldos", "sue"], ["Gastos generales", "ggs"], ["Otros", "otr"]].map((a, i) => ({ label: a[0], data: R.proj.map(x => x[a[1]]), backgroundColor: pal[i] })) } });
+  mk("ch2", { type: "bar", pct: true, data: { labels: names, datasets: [{ label: "Avance físico", data: R.proj.map(x => +(x.avn * 100).toFixed(1)), backgroundColor: "#2A9D8F" }, { label: "% consumido", data: R.proj.map(x => +(x.pcon * 100).toFixed(1)), backgroundColor: "#EE6225" }] } });
+  mk("ch3", { type: "bar", stacked: true, data: { labels: R.last12.map(r => "S" + r.w), datasets: [["Materiales", "mat"], ["Mano de obra", "mo"], ["Otros", "otr"], ["Sueldos", "sue"], ["Gastos generales", "gg"]].map((a, i) => ({ label: a[0], data: R.last12.map(r => r[a[1]]), backgroundColor: pal[i] })) } });
+  if (VIEW.tab === "proyectos" && VIEW.pid && VIEW.sub === "avance") { const c = R.curve(VIEW.pid); mk("chS", { type: "line", pct: true, data: { labels: c.map(r => "S" + r.w), datasets: [["Programado", "prog", "#EE6225"], ["Real (físico)", "real", "#2A9D8F"], ["Financiero (gasto)", "fin", "#122A50"]].map(a => ({ label: a[0], data: c.map(r => r[a[1]] == null ? null : +(r[a[1]] * 100).toFixed(1)), borderColor: a[2], backgroundColor: a[2], tension: .2, pointRadius: 2, spanGaps: false })) }, options: { scales: { y: { min: 0, suggestedMax: 100, ticks: { callback: v => v + "%" } } } } }); }
+}
+
+/* ---- armado de pantalla y eventos ---- */
+function render() {
+  if (!S) return; const y = window.scrollY, t = VIEW.tab; let body = "", title = "Panel";
+  if (t === "panel") { body = vPanel(); title = esc(S.config.empresa); } else if (t === "proyectos") { body = VIEW.pid ? vProyecto(VIEW.pid) : vProyectos(); title = VIEW.pid ? "Proyecto" : "Proyectos"; } else if (t === "cobranza") { body = vCobranza(); title = "Cobranza"; } else { body = vMas(); title = "Más"; }
+  const nav = [["panel", "📊", "Panel"], ["proyectos", "🏗️", "Proyectos"], ["+", "+", ""], ["cobranza", "💵", "Cobranza"], ["mas", "☰", "Más"]];
+  const nAl = R.alerts.filter(a => a.n === "r").length;
+  $("#app").innerHTML = '<div class="top">' + (t === "proyectos" && VIEW.pid ? '<button class="btn g s" data-act="back">←</button>' : "") + "<h1>" + title + "<small>" + (Sync.on ? "☁ modo compartido · " + ROLES[myRole()] : "Datos en este dispositivo") + " · " + fmtDate(iso(R.today)) + '</small></h1><button class="btn g s no-print" data-act="xlsx" title="Exportar a Excel">⬇ Excel</button></div>' + body +
+    '<nav class="nav">' + nav.map(n => n[0] === "+" ? '<button class="plus" data-act="quick"><span>+</span></button>' : '<button data-act="tab" data-t="' + n[0] + '" class="' + (t === n[0] ? "on" : "") + '"><span>' + n[1] + "</span>" + n[2] + (n[0] === "panel" && nAl ? '<i class="badge">' + nAl + "</i>" : "") + "</button>").join("") + "</nav>";
+  drawCharts(); window.scrollTo(0, y);
+  const cf = $("#cf"); if (cf) cf.addEventListener("submit", saveConfig);
+  const us = $("#usq"); if (us) { const run = async () => { const q = us.value; if (!Sync.user || !Sync.user.search) return; try { const hits = await Sync.user.search(q); $("#ush").innerHTML = (hits || []).slice(0, 6).map(h => '<button class="btn g s" style="margin:3px" data-adduser="' + esc(h.id) + '">+ ' + esc(h.name || h.id.slice(0, 6)) + "</button>").join(""); } catch (e) { } }; us.addEventListener("focus", run); us.addEventListener("input", run); }
+  if (Sync.user && Sync.user.profiles) { const ids = Object.keys(S.roles || {}); if (ids.length) Sync.user.profiles(ids).then(ps => ids.forEach(id => { const e = document.getElementById("u_" + id); if (e && ps[id] && ps[id].name) e.textContent = ps[id].name; })).catch(() => { }); }
+}
+function saveConfig(e) {
+  e.preventDefault(); const f = e.target.elements, c = S.config; c.empresa = f.empresa.value || c.empresa; if (f.inicio.value) c.inicio = iso(mondayOf(D(f.inicio.value)));
+  c.diasAlerta = num(f.diasAlerta.value); c.tol = num(f.tol.value) / 100; c.umbral = num(f.umbral.value) / 100; c.avMin = num(f.avMin.value) / 100; c.prorratearGG = f.prorratearGG.checked; c.iva = num(f.iva.value) / 100; c.it = num(f.it.value) / 100;
+  c.sueldos = { gerente: num(f.sg.value), contadora: num(f.sc.value), ingeniero: num(f.si.value) }; if (f.rolLocal) c.rolLocal = f.rolLocal.value; persist(); Sync.writeConfig(); recompute(); render(); toast("Configuración guardada.");
+}
+const ACT = {
+  tab: t => { VIEW.tab = t.dataset.t; VIEW.pid = null; VIEW.page = null; render(); }, back: () => { VIEW.pid = null; render(); }, quick: quickMenu, newProj: newProjChooser,
+  openProj: t => { VIEW.tab = "proyectos"; VIEW.pid = t.dataset.id; VIEW.sub = "resumen"; render(); }, sub: t => { VIEW.sub = t.dataset.s; render(); },
+  add: t => { const k = t.dataset.kind; editRec(k, null, t.dataset.pid ? { pid: t.dataset.pid } : (VIEW.pid ? { pid: VIEW.pid } : {})); }, edit: t => editRec(t.dataset.kind, t.dataset.id),
+  imp: t => importBudget(t.dataset.m, { pid: VIEW.pid }), page: t => { VIEW.page = t.dataset.p || null; render(); }, nom: t => editRec("nomina", S.nomina.find(n => n.semana === t.dataset.w) ? t.dataset.w : null, { semana: t.dataset.w, estado: "Pagado" }),
+  wk: () => { VIEW.week = Math.max(1, num($("#wkin").value)); render(); }, pdfReport: () => reportPDF(), print: () => { try { window.print(); } catch (e) { toast("Imprimir no está disponible aquí; usa «Descargar PDF»."); } },
+  xlsx: () => exportExcel(), jsonx: () => exportJSON(),
+  ximp: async () => { const f = await pickFile(".xlsx"); if (!f) return; try { const N = await importExcel(f); if (confirm("Esto reemplaza los datos actuales por los del Excel (" + N.projects.length + " proyectos). ¿Continuar?")) { try { localStorage.setItem(KEY + "_prev", JSON.stringify(S)); } catch (e) { } S = N; persist(); recompute(); render(); toast("Datos importados."); } } catch (e) { toast(e.message || "No se pudo importar."); } },
+  jsoni: async () => { const f = await pickFile(".json"); if (!f) return; try { const o = JSON.parse(await f.text()); if (confirm("Esto reemplaza los datos actuales. ¿Continuar?")) { S = Object.assign(emptyState(), o); persist(); recompute(); render(); toast("Copia restaurada."); } } catch (e) { toast("Archivo no válido."); } },
+  sample: () => { if (S.projects.length && !confirm("Esto reemplaza tus datos actuales por el ejemplo (se guarda una copia). ¿Continuar?")) return; try { localStorage.setItem(KEY + "_prev", JSON.stringify(S)); } catch (e) { } S = sampleData(); persist(); recompute(); VIEW.tab = "panel"; render(); },
+  wipe: () => { if (!confirm("¿Borrar TODOS los datos de este dispositivo?")) return; try { localStorage.setItem(KEY + "_prev", JSON.stringify(S)); } catch (e) { } S = emptyState(); persist(); recompute(); VIEW.tab = "panel"; VIEW.pid = null; render(); },
+  syncon: () => Sync.enable(true), syncoff: () => Sync.disable(), syncup: () => Sync.upload()
+};
+function boot() {
+  S = loadLocal(); recompute(); render();
+  document.addEventListener("click", e => { const t = e.target.closest("[data-act]"); if (t && ACT[t.dataset.act]) { e.preventDefault(); ACT[t.dataset.act](t, e); return; }
+    const au = e.target.closest("[data-adduser]"); if (au) { S.roles = S.roles || {}; S.roles[au.dataset.adduser] = "consulta"; Sync.saveRoles(); render(); } });
+  document.addEventListener("change", e => { const r = e.target.closest("[data-role]"); if (r) { S.roles[r.dataset.role] = r.value; Sync.saveRoles(); toast("Rol actualizado."); } });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+  Sync.init();
+}
+/* ===== VIEWS_END ===== */
+if (typeof document !== "undefined" && document.getElementById("app")) boot();
+
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){});}
+</script></body></html>
