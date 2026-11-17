@@ -49,7 +49,7 @@ canvas{max-width:100%}.ch{position:relative;height:230px}
 .ok{background:#d8f0e3;color:#1e7b46}.bad{background:#ffe3e3;color:#8f0000}.warn{background:#fff4cc;color:#6b4e00}
 .rv input{padding:5px 6px;min-height:32px;font-size:13px}.rv td{padding:4px}.rv .d{min-width:220px}.rv .u{width:64px}.rv .q{width:84px}
 .ph{display:flex;gap:6px;flex-wrap:wrap}.ph img{width:64px;height:64px;object-fit:cover;border-radius:8px;border:1px solid var(--line)}
-.hint{font-size:12px;color:var(--muted)}
+.hint{font-size:12px;color:var(--muted)}.lg{height:34px;max-width:110px;object-fit:contain;border-radius:6px;background:#fff;padding:2px}.lgbig{height:58px;max-width:150px;object-fit:contain;border-radius:8px;background:#fff;padding:3px}
 @media print{body{background:#fff;padding:0}.nav,.top .btn,.no-print,.toast,.ov{display:none!important}.card{box-shadow:none;border:1px solid #ccc;break-inside:avoid}#app{max-width:none}}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -82,7 +82,7 @@ const pct = (n, d = 1) => fmt((n || 0) * 100, d) + "%";
 function emptyState() {
   return {
     v: 1,
-    config: { empresa: "Mi empresa constructora", inicio: iso(mondayOf(todayDn())), diasAlerta: 15, tol: 0.10, umbral: 0.90, avMin: 0.10, prorratearGG: true, iva: 0.13, it: 0.03,
+    config: { empresa: "Mi empresa constructora", nit: "", representante: "", direccion: "", ciudad: "", telefono: "", correo: "", web: "", logo: "", inicio: iso(mondayOf(todayDn())), diasAlerta: 15, tol: 0.10, umbral: 0.90, avMin: 0.10, prorratearGG: true, iva: 0.13, it: 0.03,
               sueldos: { gerente: 1000, contadora: 1000, ingeniero: 1000 } },
     projects: [], items: [], cambios: [], movs: [], obreros: [], gg: [], planillas: [], cobros: [], nomina: [], pagosUtil: [], avance: [], roles: {}
   };
@@ -492,6 +492,17 @@ function openForm(o) {
   setTimeout(() => { const f1 = form.querySelector("input:not([type=file]):not([type=checkbox]),select"); if (f1 && !f1.value) f1.focus(); }, 60); return ov;
 }
 
+function resizeLogo(file) {
+  return new Promise((res, rej) => { const img = new Image(), u = URL.createObjectURL(file);
+    img.onload = () => { const w = img.width, h = img.height, png = /png|svg/i.test(file.type); let k = Math.min(1, 480 / w, 240 / h), out = "";
+      for (let i = 0; i < 5; i++) { const c = document.createElement("canvas"); c.width = Math.max(1, Math.round(w * k)); c.height = Math.max(1, Math.round(h * k)); const g = c.getContext("2d");
+        if (!png) { g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); } g.drawImage(img, 0, 0, c.width, c.height);
+        out = png ? c.toDataURL("image/png") : c.toDataURL("image/jpeg", 0.88); if (out.length < 150000) break; k *= 0.7; }
+      URL.revokeObjectURL(u); if (out.length < 200000) res(out); else rej(new Error("La imagen es demasiado grande.")); };
+    img.onerror = () => { URL.revokeObjectURL(u); rej(new Error("No se pudo leer la imagen.")); }; img.src = u; });
+}
+const safeLogo = () => (typeof S !== "undefined" && S && /^data:image\/(png|jpeg)/.test(S.config.logo || "")) ? S.config.logo : "";
+
 /* ---- fotos (local: IndexedDB; compartido: capacidad assets) ---- */
 function resizeImage(file) {
   return new Promise((res, rej) => { const img = new Image(), u = URL.createObjectURL(file); img.onload = () => { const m = 1280, k = Math.min(1, m / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); c.toBlob(b => b ? res(b) : rej(), "image/jpeg", 0.72); URL.revokeObjectURL(u); }; img.onerror = rej; img.src = u; });
@@ -521,7 +532,8 @@ function exportExcel() {
   add("Resumen proyectos", R.proj.map(x => ({ Código: x.p.codigo, Proyecto: x.p.nombre, Cliente: x.p.cliente, Ubicación: x.p.ubicacion, Estado: x.p.estado, Inicio: x.p.ini_p, "Fin contractual": x.p.fin_c, "Monto vigente": x.vig, Materiales: x.mat, "Mano de obra": x.mo, Sueldos: x.sue, "Gastos generales": x.ggs, Otros: x.otr, "Costo acumulado": x.cos, Saldo: x.sal, "% consumido": x.pcon, "Avance físico": x.avn, Cobrado: x.cob, "Saldo de caja": x.cja, "Margen proyectado": x.mpy, Semáforo: x.sem, "Emitido": x.emi, "Por cobrar": x.pcb, Vencido: x.ven, "Retención garantía": x.rtn, "Utilidad ingeniero": x.u.ing, "Utilidad devengada": x.u.dev, "Utilidad pagada": x.u.pag })));
   add("Ítems presupuesto", R.proj.flatMap(x => x.items.map(r => ({ Proyecto: x.p.nombre, Nº: r.i.nro, Descripción: r.i.desc, Unidad: r.i.unid, Cantidad: r.i.cant, "P. unitario": r.i.pu, Presupuesto: r.pres, Gastado: r.gast, Saldo: r.saldo, Alerta: r.alerta }))));
   ARRS.forEach(k => add("d_" + k, S[k].length ? S[k] : [{}]));
-  add("d_config", [Object.assign({}, S.config, { sueldos: JSON.stringify(S.config.sueldos) })]);
+  const cfgX = Object.assign({}, S.config, { sueldos: JSON.stringify(S.config.sueldos) }); delete cfgX.logo; add("d_config", [cfgX]);
+  const c = S.config; XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet([["Empresa", c.empresa], ["NIT", c.nit], ["Representante", c.representante], ["Dirección", c.direccion], ["Ciudad", c.ciudad], ["Teléfono", c.telefono], ["Correo", c.correo], ["Web", c.web]].map(r => ({ Dato: r[0], Valor: r[1] || "" }))), "Empresa");
   const out = XLSX.write(wb, { type: "array", bookType: "xlsx" });
   return saveFile("Control_Obras_" + iso(todayDn()) + ".xlsx", new Blob([out], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }));
 }
@@ -529,6 +541,7 @@ async function importExcel(file) {
   const wb = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: false }); const N = Object.assign(emptyState(), { }); let n = 0;
   ARRS.forEach(k => { const ws = wb.Sheets["d_" + k]; if (!ws) return; N[k] = XLSX.utils.sheet_to_json(ws, { defval: "" }).filter(r => Object.keys(r).length && (r[kkey(k)] !== "" && r[kkey(k)] != null)).map(r => { Object.keys(r).forEach(c => { if (r[c] === "TRUE") r[c] = true; if (r[c] === "FALSE") r[c] = false; }); return r; }); n += N[k].length; });
   const cf = wb.Sheets["d_config"]; if (cf) { const r = XLSX.utils.sheet_to_json(cf, { defval: "" })[0]; if (r) { try { r.sueldos = JSON.parse(r.sueldos); } catch (e) { r.sueldos = N.config.sueldos; } N.config = Object.assign(N.config, r); } }
+  N.config.logo = (S && S.config && S.config.logo) || "";
   if (!n) throw new Error("El archivo no tiene hojas «d_…» de esta app. Usa un Excel exportado desde la app.");
   return N;
 }
@@ -707,9 +720,11 @@ const N = v => ({ n: v });
 const empty = t => '<div class="card mut" style="text-align:center">' + t + "</div>";
 const addBtn = (kind, label, extra) => can(kind) ? '<button class="btn o s" data-act="add" data-kind="' + kind + '"' + (extra || "") + ">+ " + label + "</button>" : "";
 
+const empLines = () => { const c = S.config; return [c.nit ? "NIT: " + c.nit : "", [c.direccion, c.ciudad].filter(Boolean).join(", "), [c.telefono ? "Tel: " + c.telefono : "", c.correo, c.web].filter(Boolean).join(" · "), c.representante ? "Representante: " + c.representante : ""].filter(Boolean); };
+function empresaCard() { const l = empLines(), lg = safeLogo(); if (!lg && !l.length) return ""; return '<div class="card" style="display:flex;gap:14px;align-items:center">' + (lg ? '<img class="lgbig" src="' + lg + '" alt="Logo">' : "") + '<div><b style="font-size:16px">' + esc(S.config.empresa) + "</b>" + l.map(x => '<div class="hint">' + esc(x) + "</div>").join("") + "</div></div>"; }
 function vPanel() {
-  const T = R.T, A = R.aux; if (!S.projects.length) return vWelcome();
-  let h = '<div class="grid g4">' + kpi("Monto vigente", fmtBs(T.vig), "Cambios: " + (T.camb > 0 ? "+" : "") + fmt(T.camb, 0)) + kpi("Costo acumulado", fmtBs(T.cos), pct(T.pcon) + " del vigente", "o") + kpi("Saldo presupuestario", money(T.sal, 1), "No es dinero en caja", "t") + kpi("% consumido", pct(T.pcon), "Avance físico: " + pct(T.avn), "o") +
+  const T = R.T, A = R.aux; if (!S.projects.length) return empresaCard() + vWelcome();
+  let h = empresaCard() + '<div class="grid g4">' + kpi("Monto vigente", fmtBs(T.vig), "Cambios: " + (T.camb > 0 ? "+" : "") + fmt(T.camb, 0)) + kpi("Costo acumulado", fmtBs(T.cos), pct(T.pcon) + " del vigente", "o") + kpi("Saldo presupuestario", money(T.sal, 1), "No es dinero en caja", "t") + kpi("% consumido", pct(T.pcon), "Avance físico: " + pct(T.avn), "o") +
     kpi("Total cobrado", fmtBs(T.cob), pct(T.vig ? T.cob / T.vig : 0) + " del vigente") + kpi("Saldo de caja", money(A.saldoCaja, 1), "Cobrado − pagado", "t") + kpi("Por pagar", fmtBs(A.porPagar), "Compras, sueldos, gastos", "a") + kpi("Margen proyectado", money(T.mpy, 1), pct(T.mpc) + " estimado", "t") + "</div>";
   h += '<div class="grid g4" style="margin-top:10px">' + kpi("Por cobrar", fmtBs(T.pcb), "Planillas netas", "") + kpi("Vencido por cobrar", fmtBs(T.ven), "Fecha límite pasada", T.ven > 0 ? "r" : "") + kpi("Retenciones", fmtBs(T.rtn), "Garantía por recuperar", "a") + kpi("Impuestos (est.)", fmtBs(R.imp.total), "IVA + IT · referencial", "a") + "</div>";
   if (R.alerts.length) h += '<div class="card"><h2>Avisos</h2>' + R.alerts.map(a => '<div class="al ' + a.n + '">' + esc(a.t) + "</div>").join("") + "</div>";
@@ -842,7 +857,7 @@ function vInforme() {
   const w = VIEW.week != null ? VIEW.week : Math.max(1, R.curWeek - 1), r = R.wkTot[w] || { mat: 0, mo: 0, otr: 0, sue: 0, gg: 0, cob: 0 }, s = R.start + 7 * (w - 1);
   const cum = k => { let a = 0; for (let i = 1; i <= w; i++) a += (R.wkTot[i] || {})[k] || 0; return a; }; const gt = r.mat + r.mo + r.otr + r.sue + r.gg, ga = cum("mat") + cum("mo") + cum("otr") + cum("sue") + cum("gg");
   const pw = x => x.wcost[w] || 0;
-  return '<div class="card"><div class="row" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><h2 style="margin:0">Informe semanal · semana ' + w + '</h2><span class="no-print"><input type="number" id="wkin" value="' + w + '" min="1" style="width:70px;display:inline-block"> <button class="btn g s" data-act="wk">Ver</button></span></div><div class="hint">' + fmtDate(iso(s)) + " al " + fmtDate(iso(s + 6)) + " · " + esc(S.config.empresa) + '</div><div class="acts no-print" style="justify-content:flex-start"><button class="btn o s" data-act="pdfReport">⬇ Descargar PDF</button><button class="btn g s" data-act="print">🖨 Imprimir</button></div></div>' +
+  return '<div class="card"><div class="row" style="display:flex;gap:8px;align-items:center;justify-content:space-between"><h2 style="margin:0">Informe semanal · semana ' + w + '</h2><span class="no-print"><input type="number" id="wkin" value="' + w + '" min="1" style="width:70px;display:inline-block"> <button class="btn g s" data-act="wk">Ver</button></span></div><div class="hint">' + fmtDate(iso(s)) + " al " + fmtDate(iso(s + 6)) + " · " + esc(S.config.empresa) + '</div>' + (safeLogo() ? '<img class="lgbig" src="' + safeLogo() + '" alt="Logo" style="margin-top:8px">' : "") + empLines().map(x => '<div class="hint">' + esc(x) + "</div>").join("") + '<div class="acts no-print" style="justify-content:flex-start"><button class="btn o s" data-act="pdfReport">⬇ Descargar PDF</button><button class="btn g s" data-act="print">🖨 Imprimir</button></div></div>' +
     '<div class="card"><h2>1. Resumen de la semana</h2>' + tbl(["Concepto", ">Semana", ">Acumulado"], [["Materiales", r.mat, cum("mat")], ["Mano de obra", r.mo, cum("mo")], ["Otros gastos de obra", r.otr, cum("otr")], ["Sueldos", r.sue, cum("sue")], ["Gastos generales", r.gg, cum("gg")]].map(a => tr([a[0], N(fmt(a[1])), N(fmt(a[2]))])), tr(["GASTO TOTAL", N(fmt(gt)), N(fmt(ga))], ' class="tot"') + tr(["Cobrado", N(fmt(r.cob)), N(fmt(cum("cob")))]) + tr(["Neto (cobrado − gasto)", N(fmt(r.cob - gt)), N(fmt(cum("cob") - ga))], ' class="tot"')) + "</div>" +
     '<div class="card"><h2>2. Proyectos</h2>' + tbl(["Proyecto", "Estado", ">Avance", ">Gasto semana", ">Costo acum.", ">% consumido", ">Saldo", "Semáforo"], R.proj.map(x => tr([esc(x.p.nombre), esc(x.p.estado), N(pct(x.avn, 0)), N(fmt(pw(x))), N(fmt(x.cos)), N(pct(x.pcon)), N(fmt(x.sal)), chipS(x.sem)]))) + "</div>" +
     '<div class="card"><h2>3. Dinero por pagar y por cobrar (a hoy)</h2>' + tbl(["Concepto", ">Bs"], [["Por pagar", R.aux.porPagar], ["Por cobrar de planillas (neto)", R.T.pcb], ["Vencido por cobrar", R.T.ven], ["Retenciones de garantía", R.T.rtn], ["SALDO DE CAJA (cobrado − pagado)", R.aux.saldoCaja], ["Utilidad del ingeniero devengada", R.T.uDev], ["Utilidad del ingeniero por pagar", R.T.uIng - R.T.uPag]].map(a => tr([a[0], N(fmt(a[1]))]))) + '</div><div class="card"><h2>4. Alertas</h2>' + (R.alerts.length ? R.alerts.map(a => '<div class="al ' + a.n + '">' + esc(a.t) + "</div>").join("") : '<div class="al i">✔ Sin alertas relevantes.</div>') + "</div>";
@@ -851,7 +866,10 @@ function reportPDF() {
   const J = window.jspdf && window.jspdf.jsPDF; if (!J) { toast("No cargó el generador de PDF; usa «Imprimir»."); return; }
   const w = VIEW.week != null ? VIEW.week : Math.max(1, R.curWeek - 1), r = R.wkTot[w] || { mat: 0, mo: 0, otr: 0, sue: 0, gg: 0, cob: 0 }, s = R.start + 7 * (w - 1);
   const d = new J({ unit: "pt", format: "a4" }); let y = 40; const L = 40;
-  d.setFillColor(18, 42, 80); d.rect(0, 0, 595, 56, "F"); d.setTextColor(255); d.setFontSize(15); d.text(S.config.empresa, L, 26); d.setFontSize(10); d.text("INFORME SEMANAL · semana " + w + " · " + fmtDate(iso(s)) + " al " + fmtDate(iso(s + 6)), L, 44); d.setTextColor(0); y = 78;
+  d.setFillColor(18, 42, 80); d.rect(0, 0, 595, 56, "F"); let tx = L; const lg = safeLogo();
+  if (lg) { try { const pr = d.getImageProperties(lg), bw = 80, bh = 40, k = Math.min(bw / pr.width, bh / pr.height), iw = pr.width * k, ih = pr.height * k; d.setFillColor(255, 255, 255); d.roundedRect(L, 8, bw + 6, bh, 4, 4, "F"); d.addImage(lg, pr.fileType === "JPEG" ? "JPEG" : "PNG", L + 3 + (bw - iw) / 2, 8 + (bh - ih) / 2, iw, ih); tx = L + bw + 16; } catch (e) { } }
+  d.setTextColor(255); d.setFontSize(15); d.text(S.config.empresa, tx, 26); d.setFontSize(10); d.text("INFORME SEMANAL · semana " + w + " · " + fmtDate(iso(s)) + " al " + fmtDate(iso(s + 6)), tx, 44); d.setTextColor(90); d.setFontSize(8);
+  y = 72; empLines().forEach(t => { d.text(t, L, y); y += 10; }); d.setTextColor(0); y += 8;
   const at = (head, body, opt) => { d.autoTable(Object.assign({ startY: y, head: [head], body, margin: { left: L, right: L }, styles: { fontSize: 8.5, cellPadding: 3 }, headStyles: { fillColor: [18, 42, 80] }, theme: "grid" }, opt || {})); y = d.lastAutoTable.finalY + 14; };
   const gt = r.mat + r.mo + r.otr + r.sue + r.gg; d.setFontSize(11); d.text("1. Resumen de la semana", L, y); y += 6;
   at(["Concepto", "Semana (Bs)"], [["Materiales", fmt(r.mat)], ["Mano de obra", fmt(r.mo)], ["Otros gastos de obra", fmt(r.otr)], ["Sueldos", fmt(r.sue)], ["Gastos generales", fmt(r.gg)], ["GASTO TOTAL", fmt(gt)], ["Cobrado", fmt(r.cob)], ["Neto", fmt(r.cob - gt)]]);
@@ -861,11 +879,26 @@ function reportPDF() {
   return saveFile("Informe_semana_" + w + ".pdf", d.output("blob"));
 }
 function vConfig() {
-  const c = S.config; return '<div class="card"><h2>Configuración</h2><form id="cf">' + [
-    { k: "empresa", l: "Nombre de la empresa" }, { k: "inicio", l: "Inicio del control (se ajusta al lunes)", t: "date", half: 1 }, { k: "diasAlerta", l: "Días de alerta por vencimiento", t: "number", half: 1 }, { k: "tol", l: "Tolerancia de desviación (%)", t: "pct", half: 1 }, { k: "umbral", l: "Umbral de consumo (%)", t: "pct", half: 1 },
+  const c = S.config; return vEmpresa() + '<div class="card"><h2>Parámetros de control</h2><form id="cf">' + [
+    { k: "inicio", l: "Inicio del control (se ajusta al lunes)", t: "date", half: 1 }, { k: "diasAlerta", l: "Días de alerta por vencimiento", t: "number", half: 1 }, { k: "tol", l: "Tolerancia de desviación (%)", t: "pct", half: 1 }, { k: "umbral", l: "Umbral de consumo (%)", t: "pct", half: 1 },
     { k: "avMin", l: "Avance mínimo para proyectar (%)", t: "pct", half: 1 }, { k: "prorratearGG", l: "Repartir gastos generales entre proyectos", t: "check", half: 1 }, { k: "iva", l: "IVA (%)", t: "pct", half: 1 }, { k: "it", l: "IT (%)", t: "pct", half: 1 },
     { k: "sg", l: "Sueldo semanal gerente (Bs)", t: "money", half: 1 }, { k: "sc", l: "Sueldo semanal contadora (Bs)", t: "money", half: 1 }, { k: "si", l: "Sueldo semanal ingeniero (Bs)", t: "money", half: 1 }].map(f => { const v = Object.assign({}, c, { sg: c.sueldos.gerente, sc: c.sueldos.contadora, si: c.sueldos.ingeniero }); return fieldHtml(f, v); }).join("").replace(/<div class="f"/g, '<div class="f"') +
     (Sync.on ? "" : fieldHtml({ k: "rolLocal", l: "Mi rol en este dispositivo", t: "select", opts: Object.entries(ROLES).map(([v, l]) => ({ v, l })) }, c)) + '<div class="acts"><span class="sp"></span><button class="btn o" type="submit">Guardar configuración</button></div></form></div>' + (Sync.on ? vRoles() : "");
+}
+function vEmpresa() {
+  const c = S.config, lg = safeLogo();
+  return '<div class="card"><h2>Datos de la empresa</h2><p class="hint">Aparecen en el panel, en el informe semanal y en los PDF.</p><form id="ef"><div class="f"><label>Logo de la empresa</label><div class="ph" id="lgprev">' + (lg ? '<img src="' + lg + '" alt="Logo" style="width:auto;max-width:180px;height:70px;object-fit:contain">' : '<span class="hint">Sin logo</span>') +
+    '</div><input type="file" id="lgfile" accept="image/png,image/jpeg,image/svg+xml,image/*"><div class="acts" style="justify-content:flex-start;margin:4px 0 0"><button type="button" class="btn g s" id="lgdel">Quitar logo</button></div><small>Se reduce automáticamente. Un PNG con fondo transparente se ve mejor.</small></div>' +
+    [{ k: "empresa", l: "Nombre de la empresa", req: 1 }, { k: "nit", l: "NIT", half: 1 }, { k: "representante", l: "Representante / gerente", half: 1 }, { k: "direccion", l: "Dirección" }, { k: "ciudad", l: "Ciudad", half: 1 }, { k: "telefono", l: "Teléfono / WhatsApp", half: 1 }, { k: "correo", l: "Correo electrónico", t: "email", half: 1 }, { k: "web", l: "Sitio web", half: 1 }].map(f => fieldHtml(f, c)).join("") +
+    '<div class="acts"><span class="sp"></span><button class="btn o" type="submit">Guardar datos de la empresa</button></div></form></div>';
+}
+function wireEmpresa() {
+  const f = $("#ef"); if (!f) return; let pend = null;
+  $("#lgfile").addEventListener("change", async e => { const file = e.target.files[0]; if (!file) return; try { pend = await resizeLogo(file); $("#lgprev").innerHTML = '<img src="' + pend + '" alt="Logo" style="width:auto;max-width:180px;height:70px;object-fit:contain">'; } catch (er) { toast(er.message || "No se pudo usar esa imagen."); } });
+  $("#lgdel").addEventListener("click", () => { pend = ""; $("#lgprev").innerHTML = '<span class="hint">Sin logo</span>'; });
+  f.addEventListener("submit", e => { e.preventDefault(); const el = f.elements, c = S.config; if (!el.empresa.value.trim()) { toast("Falta el nombre de la empresa."); return; }
+    ["empresa", "nit", "representante", "direccion", "ciudad", "telefono", "correo", "web"].forEach(k => { c[k] = el[k].value.trim(); }); if (pend !== null) c.logo = pend;
+    persist(); Sync.writeConfig(); recompute(); render(); toast("Datos de la empresa guardados."); });
 }
 function vRoles() {
   if (!Sync.isOwner) return '<div class="card"><h2>Usuarios y roles</h2><p class="hint">Tu rol: <b>' + ROLES[myRole()] + "</b>. Solo el propietario asigna roles.</p></div>";
@@ -906,15 +939,15 @@ function render() {
   if (t === "panel") { body = vPanel(); title = esc(S.config.empresa); } else if (t === "proyectos") { body = VIEW.pid ? vProyecto(VIEW.pid) : vProyectos(); title = VIEW.pid ? "Proyecto" : "Proyectos"; } else if (t === "cobranza") { body = vCobranza(); title = "Cobranza"; } else { body = vMas(); title = "Más"; }
   const nav = [["panel", "📊", "Panel"], ["proyectos", "🏗️", "Proyectos"], ["+", "+", ""], ["cobranza", "💵", "Cobranza"], ["mas", "☰", "Más"]];
   const nAl = R.alerts.filter(a => a.n === "r").length;
-  $("#app").innerHTML = '<div class="top">' + (t === "proyectos" && VIEW.pid ? '<button class="btn g s" data-act="back">←</button>' : "") + "<h1>" + title + "<small>" + (Sync.on ? "☁ modo compartido · " + ROLES[myRole()] : "Datos en este dispositivo") + " · " + fmtDate(iso(R.today)) + '</small></h1><button class="btn g s no-print" data-act="xlsx" title="Exportar a Excel">⬇ Excel</button></div>' + body +
+  $("#app").innerHTML = '<div class="top">' + (t === "proyectos" && VIEW.pid ? '<button class="btn g s" data-act="back">←</button>' : "") + (safeLogo() ? '<img class="lg" src="' + safeLogo() + '" alt="">' : "") + "<h1>" + title + "<small>" + (Sync.on ? "☁ modo compartido · " + ROLES[myRole()] : "Datos en este dispositivo") + " · " + fmtDate(iso(R.today)) + '</small></h1><button class="btn g s no-print" data-act="xlsx" title="Exportar a Excel">⬇ Excel</button></div>' + body +
     '<nav class="nav">' + nav.map(n => n[0] === "+" ? '<button class="plus" data-act="quick"><span>+</span></button>' : '<button data-act="tab" data-t="' + n[0] + '" class="' + (t === n[0] ? "on" : "") + '"><span>' + n[1] + "</span>" + n[2] + (n[0] === "panel" && nAl ? '<i class="badge">' + nAl + "</i>" : "") + "</button>").join("") + "</nav>";
   drawCharts(); window.scrollTo(0, y);
-  const cf = $("#cf"); if (cf) cf.addEventListener("submit", saveConfig);
+  const cf = $("#cf"); if (cf) cf.addEventListener("submit", saveConfig); wireEmpresa();
   const us = $("#usq"); if (us) { const run = async () => { const q = us.value; if (!Sync.user || !Sync.user.search) return; try { const hits = await Sync.user.search(q); $("#ush").innerHTML = (hits || []).slice(0, 6).map(h => '<button class="btn g s" style="margin:3px" data-adduser="' + esc(h.id) + '">+ ' + esc(h.name || h.id.slice(0, 6)) + "</button>").join(""); } catch (e) { } }; us.addEventListener("focus", run); us.addEventListener("input", run); }
   if (Sync.user && Sync.user.profiles) { const ids = Object.keys(S.roles || {}); if (ids.length) Sync.user.profiles(ids).then(ps => ids.forEach(id => { const e = document.getElementById("u_" + id); if (e && ps[id] && ps[id].name) e.textContent = ps[id].name; })).catch(() => { }); }
 }
 function saveConfig(e) {
-  e.preventDefault(); const f = e.target.elements, c = S.config; c.empresa = f.empresa.value || c.empresa; if (f.inicio.value) c.inicio = iso(mondayOf(D(f.inicio.value)));
+  e.preventDefault(); const f = e.target.elements, c = S.config; if (f.inicio.value) c.inicio = iso(mondayOf(D(f.inicio.value)));
   c.diasAlerta = num(f.diasAlerta.value); c.tol = num(f.tol.value) / 100; c.umbral = num(f.umbral.value) / 100; c.avMin = num(f.avMin.value) / 100; c.prorratearGG = f.prorratearGG.checked; c.iva = num(f.iva.value) / 100; c.it = num(f.it.value) / 100;
   c.sueldos = { gerente: num(f.sg.value), contadora: num(f.sc.value), ingeniero: num(f.si.value) }; if (f.rolLocal) c.rolLocal = f.rolLocal.value; persist(); Sync.writeConfig(); recompute(); render(); toast("Configuración guardada.");
 }
